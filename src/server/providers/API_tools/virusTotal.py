@@ -23,7 +23,7 @@ async def make_get_request(url : str) -> dict[str, Any] | None :
             print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
             return None
 
-async def make_get_request2(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
+async def make_get_request(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
     headers = {
         "x-apikey": API_KEY,
     }
@@ -220,7 +220,174 @@ async def Add_a_vote_to_an_IP_address(IP: str, vote: dict[str, Any]) -> dict[str
     
     return data
 
+@mcp.tool()
+async def Get_a_domain_report(domain: str) -> dict[str, Any] | None:
+    """
+    Get a domain report from VirusTotal.
+    example: domain='example.com'
+    """
+    url = f"{BASE_URL}/domains/{domain}"
+    data = await make_get_request(url)
 
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Request_an_domain_rescan(domain: str) -> dict[str, Any] | None:
+    """
+    Request a domain rescan from VirusTotal.
+    example: domain='example.com'
+    """
+    url = f"{BASE_URL}/domains/{domain}/analyse"
+    data = await make_post_request(url)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Get_comments_on_a_domain(domain: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get comments on a domain from VirusTotal.
+    example: domain='example.com'
+    """
+    params = {"limit": limit}
+
+    if cursor:
+        params["cursor"] = cursor
+
+    url = f"{BASE_URL}/domains/{domain}/comments"
+    data = await make_get_request(url, params)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Add_a_comment_to_a_domain(domain: str, comment: str) -> dict[str, Any] | None:
+    """
+    Add a comment to a domain on VirusTotal.
+    example: domain='example.com', comment='This is a test comment.'
+    """
+    url = f"{BASE_URL}/domains/{domain}/comments"
+    
+    payload = {
+        "data": {
+            "type": "comment",
+            "attributes": {
+                "text": comment
+            }
+        }
+    }
+
+    data = await make_post_request(url, payload)
+
+    if not data:
+        print("not data")
+        return None
+    return data
+
+@mcp.tool()
+async def Get_objects_related_to_a_domain(domain: str, relationship: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get objects related to a domain from VirusTotal.
+    example: domain='example.com'
+    """
+    params = {"limit": limit}
+
+    if cursor:
+        params["cursor"] = cursor
+    
+    url = f"{BASE_URL}/domains/{domain}/{relationship}"
+    data = await make_get_request(url, params)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Get_object_descriptors_related_to_a_domain(domain: str, relationship: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get object descriptors related to a domain from VirusTotal.
+    example: domain='example.com'
+    """
+    params = {"limit": limit}
+
+    if cursor:
+        params["cursor"] = cursor
+
+    url = f"{BASE_URL}/domains/{domain}/relationships/{relationship}"
+    data = await make_get_request(url, params)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Get_a_DNS_resolution_object(domain: str) -> dict[str, Any] | None:
+    """
+    Get a DNS resolution object from VirusTotal.
+    example: domain='example.com'
+    """
+    url = f"{BASE_URL}/resolutions/{domain}"
+    data = await make_get_request(url)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Get_votes_on_a_domain(domain: str) -> dict[str, Any] | None:
+    """
+    Get votes on a domain from VirusTotal.
+    example: domain='example.com'
+    """
+    url = f"{BASE_URL}/domains/{domain}/votes"
+    data = await make_get_request(url)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
+
+@mcp.tool()
+async def Add_a_vote_to_a_domain(domain: str, verdict : str) -> dict[str, Any] | None:
+    """
+    Add a vote to a domain on VirusTotal.
+    example: domain='example.com', verdict='malicious'
+    """
+    url = f"{BASE_URL}/domains/{domain}/votes"
+    
+    payload = {
+        "data": {
+            "type": "vote",
+            "attributes": {
+                "verdict": verdict
+            }
+        }
+    }
+
+    data = await make_post_request(url, payload)
+
+    if not data:
+        print("not data")
+        return None
+    
+    return data
 
 def main():
     # Initialize and run the server
