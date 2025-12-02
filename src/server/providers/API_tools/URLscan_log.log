@@ -1,0 +1,4 @@
+2025-12-02 16:28:42,996 [INFO] mcp.server.lowlevel.server - Processing request of type ListToolsRequest
+2025-12-02 16:29:42,422 [INFO] mcp.server.lowlevel.server - Processing request of type CallToolRequest
+2025-12-02 16:31:43,041 [INFO] mcp.server.lowlevel.server - Processing request of type CallToolRequest
+2025-12-02 16:31:53,681 [ERROR] cli - Dev server failed

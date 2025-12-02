@@ -2,28 +2,81 @@ import requests
 import httpx
 from mcp.server.fastmcp import FastMCP
 from typing import Any
+import os
+from dotenv import load_dotenv
+import logging
+import utils.validate as validate
+
+load_dotenv()
+
+# ---------- Logging ----------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+    filename="URLscan_log.log",
+    filemode="a"
+)
+
+logger = logging.getLogger(__name__)
 
 mcp = FastMCP("VirusTotal MCP", json_response=True)
 
 BASE_URL = "https://www.virustotal.com/api/v3"
-API_KEY = ""
+API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+
+if not API_KEY:
+    raise RuntimeError("Missing VIRUSTOTAL_API_KEY")
 
 # Helper function to make requests to VirusTotal API
-async def make_get_request(url : str) -> dict[str, Any] | None :
+# async def make_get_request(url : str) -> dict[str, Any] | None :
+#     response, error = None, None
+#     headers = {
+#         "x-apikey": API_KEY,
+#     }
+#     async with httpx.AsyncClient() as client:
+#         try:
+#             response = await client.get(url, headers=headers, timeout=30.0)
+#             response.raise_for_status()
+#             response = response.json()
+#         # esception
+#         except httpx.HTTPStatusError as e:
+#             print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+#             error = str(e)
+#     return {
+#         "data": response,
+#         "error": error
+#     }
+
+async def make_get_request(url: str) -> dict[str, Any]:
     headers = {
         "x-apikey": API_KEY,
     }
+
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, headers=headers, timeout=30.0)
-            response.raise_for_status()
-            return response.json()
-        # esception
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
         except httpx.HTTPStatusError as e:
             print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return None
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            print(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
 
-async def make_get_request(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
+
+
+async def make_get_request2(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
     headers = {
         "x-apikey": API_KEY,
     }
@@ -41,7 +94,7 @@ async def make_get_request(url : str, params : dict[str , Any]) -> dict[str, Any
         # esception
         except httpx.HTTPStatusError as e:
             print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return None
+            return e
 
 async def make_post_request(url : str) -> dict[str, Any] | None :
     headers = {
@@ -77,14 +130,20 @@ async def Get_an_IP_address_report(IP : str) -> dict[str, Any] | None :
     """
     Get an IP address report from VirusTotal.
     example: IP=')"""
+
+    if not validate.is_valid_ip(IP):
+        # raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        logging.error(f"The IP address '{IP}' is not a valid address.")
+
     url = f"{BASE_URL}/ip_addresses/{IP}"
     data = await make_get_request(url)
 
-    if not data:
-        print("not data")
-        return None
-    
+    if data["error"] is not None:
+        logging.error(f"Error in VT IP report: {data['error']}")
+
+    logging.info(f"return: {data}")
     return data
+
 
 @mcp.tool()
 async def Request_an_IP_address_rescan(IP : str) -> dict[str, Any] | None :
@@ -112,7 +171,7 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/ip_addresses/{IP}/comments"
-    data = await make_get_request(url, params)
+    data = await make_get_request2(url, params)
 
     if not data:
         print("not data")
