@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add src directory to path so we can import utils
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
 import requests
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -5,6 +11,7 @@ from typing import Any
 from dotenv import load_dotenv
 import os
 import logging
+import utils.validate as validate
 
 load_dotenv()
 
@@ -43,7 +50,7 @@ async def make_get_request(url : str) -> dict[str, Any] | None :
             response = response.json()
         # esception
         except httpx.HTTPStatusError as e:
-            print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
             error = str(e)
 
     logging.info(f"GET {url} - Response: {response}, Error: {error}")
@@ -69,7 +76,7 @@ async def make_get_request(url : str, params : dict[str , Any]) -> dict[str, Any
             return response.json()
         # esception
         except httpx.HTTPStatusError as e:
-            print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
             # raise(e)
             return None
 
@@ -84,7 +91,7 @@ async def make_post_request(url : str) -> dict[str, Any] | None :
             return response.json()
         # esception
         except httpx.HTTPStatusError as e:
-            print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
             return None
         
 async def make_post_request(url : str, body : dict[str, Any]) -> dict[str, Any] | None :
@@ -98,7 +105,7 @@ async def make_post_request(url : str, body : dict[str, Any]) -> dict[str, Any] 
             return response.json()
         # esception
         except httpx.HTTPStatusError as e:
-            print(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
             return None
 
 # tools        
@@ -111,9 +118,10 @@ async def API_Quotas() -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 # PRO tools
@@ -126,9 +134,10 @@ async def User_Information(username : str) -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -153,9 +162,10 @@ async def scan(url : str, visibility : str = "public", country : str | None = No
     data = await make_post_request(api_url, body)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -167,9 +177,10 @@ async def result(scanid : str) -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -179,17 +190,15 @@ async def screenshot(scanid : str) -> dict[str, Any] | None :
     """
 
     if not isinstance(scanid, str):
-        print("Invalid scanid")
+        logging.error("Invalid scanid")
         return None
     
     data, error = None, None
     url = f"{BASE_URL}/screenshot/{scanid}.png"
     data = await make_get_request(url)
 
-    return {
-        "data": data,
-        "error": error
-    }
+    logging.info(f"return: {data}")
+    return data
 
 @mcp.tool()
 async def DOM(scanid : str) -> dict[str, Any] | None :
@@ -200,9 +209,10 @@ async def DOM(scanid : str) -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -214,9 +224,10 @@ async def Available_countries() -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -229,9 +240,10 @@ async def Available_User_Agents() -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -254,9 +266,10 @@ async def search(query : str, size : int | None = None, search_after : int | Non
     data = await make_get_request(url, params)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -268,9 +281,10 @@ async def Live_scanners() -> dict[str, Any] | None :
     data = await make_get_request(url)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 # task fields : URL, visibility.
@@ -289,9 +303,10 @@ async def Non_Blocking_Trigger_Live_Scan(scannerid : str, task : dict[str, Any],
     data = await make_post_request(url, payload)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 @mcp.tool()
@@ -308,9 +323,10 @@ async def Trigger_Live_Scan(scannerid : str, task : dict[str, Any], scanner : di
     data = await make_post_request(url, payload)
 
     if not data:
-        print("No data received")
+        logging.error("No data received")
         return None
     
+    logging.info(f"return: {data}")
     return data
 
 def main():

@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add src directory to path so we can import utils
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
 import requests
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -13,7 +19,7 @@ load_dotenv()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
-    filename="URLscan_log.log",
+    filename="virusTotal_log.log",
     filemode="a"
 )
 
