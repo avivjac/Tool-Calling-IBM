@@ -36,6 +36,7 @@ if not API_KEY:
     logging.error("Missing URLSCAN_API_KEY environment variable")
     raise RuntimeError("Missing URLSCAN_API_KEY")
 
+# ---------- Helper Request Functions ----------
 
 # Helper function to make requests to VirusTotal API
 async def make_get_request(url : str) -> dict[str, Any] | None :
@@ -108,7 +109,10 @@ async def make_post_request(url : str, body : dict[str, Any]) -> dict[str, Any] 
             logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
             return None
 
-# tools        
+# ---------- Tools ----------
+# Implemention of the APIs endpoints as tools
+
+# Generic
 @mcp.tool()
 async def API_Quotas() -> dict[str, Any] | None :
     """
@@ -124,7 +128,7 @@ async def API_Quotas() -> dict[str, Any] | None :
     logging.info(f"return: {data}")
     return data
 
-# PRO tools
+# PRO tools (- to delete ?)
 @mcp.tool()
 async def User_Information(username : str) -> dict[str, Any] | None :
     """
@@ -140,6 +144,7 @@ async def User_Information(username : str) -> dict[str, Any] | None :
     logging.info(f"return: {data}")
     return data
 
+# Scanning
 @mcp.tool()
 async def scan(url : str, visibility : str = "public", country : str | None = None, tags : list[str] | None = None, overrideSafety : bool | None = None, refer : str | None  = None, customagent : str | None = None) -> dict[str, Any] | None :
     """
@@ -246,6 +251,8 @@ async def Available_User_Agents() -> dict[str, Any] | None :
     logging.info(f"return: {data}")
     return data
 
+
+# Search
 @mcp.tool()
 async def search(query : str, size : int | None = None, search_after : int | None = None, datasource : str | None = None) -> dict[str, Any] | None :
     """
@@ -272,6 +279,7 @@ async def search(query : str, size : int | None = None, search_after : int | Non
     logging.info(f"return: {data}")
     return data
 
+# Live Scanning
 @mcp.tool()
 async def Live_scanners() -> dict[str, Any] | None :
     """
@@ -328,6 +336,628 @@ async def Trigger_Live_Scan(scannerid : str, task : dict[str, Any], scanner : di
     
     logging.info(f"return: {data}")
     return data
+
+@mcp.tool()
+async def Live_Scan_Get_Resource(scannerid : str, resourceType : str, resourceId : str) -> dict[str, Any] | None :
+    """
+    Using the Scan ID received from the Submission API, you can use the Result API to poll for the scan.
+    """
+    url = f"{BASE_URL}/livescan/{scannerid}/{resourceType}/{resourceId}"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Store_Live_Scan_Result(scannerid : str, scanid : str) -> dict[str, Any] | None :
+    """
+    Store the result of a live scan.
+    """
+    url = f"{BASE_URL}/livescan/{scannerid}/{scanid}/"    
+
+    payload = {}
+
+    data = await make_put_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+    #TODO: PUT REQUEST - Need to fix params, body and helper function
+
+@mcp.tool()
+async def Purge_Live_Scan_Result(scannerid : str, scanid : str) -> dict[str, Any] | None :
+    """
+    Purge the result of a live scan.
+    """
+    url = f"{BASE_URL}/livescan/{scannerid}/{scanid}/"    
+
+    data = await make_delete_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+    #TODO: DELETE REQUEST - Need to fix params, body and helper function
+
+
+# Saved Searches
+@mcp.tool()
+async def Saved_Searches() -> dict[str, Any] | None :
+    """
+    Retrieve saved searches.
+    """
+    url = f"{BASE_URL}/user/searches/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Create_Saved_Search(datasource : str, description : str | None = None, longDescription : str | None = None, name : str, permissions : list[str] | None = None, query : str, tlp : str | None = None, usertags : list[str] | None = None) -> dict[str, Any] | None :
+    """
+    Create a saved search.
+    """
+
+
+    url = f"{BASE_URL}/user/searches/"
+
+    payload = {
+        "datasource": datasource,
+        "description": description,
+        "longDescription": longDescription,
+        "name": name,
+        "permissions": permissions,
+        "query": query,
+        "tlp": tlp,
+        "usertags": usertags
+    }
+
+    data = await make_post_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Update_Saved_Search(searchId : str, datasource : str, description : str | None = None, longDescription : str | None = None, name : str, permissions : list[str] | None = None, query : str, tlp : str | None = None, usertags : list[str] | None = None) -> dict[str, Any] | None :
+    """
+    Update a saved search.
+    """
+    url = f"{BASE_URL}/user/searches/{searchId}/"
+
+    payload = {
+        "datasource": datasource,
+        "description": description,
+        "longDescription": longDescription,
+        "name": name,
+        "permissions": permissions,
+        "query": query,
+        "tlp": tlp,
+        "usertags": usertags
+    }
+
+    data = await make_put_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Delete_Saved_Search(searchId : str) -> dict[str, Any] | None :
+    """
+    Delete a saved search.
+    """
+    url = f"{BASE_URL}/user/searches/{searchId}/"
+
+    data = await make_delete_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Saved_Search_Search_Results(searchId : str) -> dict[str, Any] | None :
+    """
+    Retrieve saved search results.
+    """
+    url = f"{BASE_URL}/user/searches/{searchId}/results/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+
+# Subscriptions
+@mcp.tool()
+async def Subscriptions() -> dict[str, Any] | None :
+    """
+    Retrieve subscriptions.
+    """
+    url = f"{BASE_URL}/user/subscriptions/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Create_Subscription(searchIds : list[str], frequency : str, emailAddresses : list[str], name : str, description : str | None = None, isActive : bool, ignoreTime : bool, weekDays : list[str] | None = None, permissions : list[str] | None = None, channelIds : list[str] | None = None, incidentChannelIds : list[str] | None = None, incidentProfileId : str | None = None, incidentVisibility : str | None = None, incidentCreationMode : str | None = None, incidentWatchKeys : str | None = None, ) -> dict[str, Any] | None :
+    """
+    Create a subscription.
+    """
+    url = f"{BASE_URL}/user/subscriptions/"
+
+    payload = {
+        "searchIds": searchIds,
+        "frequency": frequency,
+        "emailAddresses": emailAddresses,
+        "name": name,
+        "description": description,
+        "isActive": isActive,
+        "ignoreTime": ignoreTime,
+        "weekDays": weekDays,
+        "permissions": permissions,
+        "channelIds": channelIds,
+        "incidentChannelIds": incidentChannelIds,
+        "incidentProfileId": incidentProfileId,
+        "incidentVisibility": incidentVisibility,
+        "incidentCreationMode": incidentCreationMode,
+        "incidentWatchKeys": incidentWatchKeys
+    }
+
+    data = await make_post_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Update_Subscription(subscriptionId : str, searchIds : list[str], frequency : str, emailAddresses : list[str], name : str, description : str | None = None, isActive : bool, ignoreTime : bool, weekDays : list[str] | None = None, permissions : list[str] | None = None, channelIds : list[str] | None = None, incidentChannelIds : list[str] | None = None, incidentProfileId : str | None = None, incidentVisibility : str | None = None, incidentCreationMode : str | None = None, incidentWatchKeys : str | None = None, ) -> dict[str, Any] | None :
+    """
+    Update a subscription.
+    """
+    url = f"{BASE_URL}/user/subscriptions/{subscriptionId}/"
+
+    payload = {
+        "searchIds": searchIds,
+        "frequency": frequency,
+        "emailAddresses": emailAddresses,
+        "name": name,
+        "description": description,
+        "isActive": isActive,
+        "ignoreTime": ignoreTime,
+        "weekDays": weekDays,
+        "permissions": permissions,
+        "channelIds": channelIds,
+        "incidentChannelIds": incidentChannelIds,
+        "incidentProfileId": incidentProfileId,
+        "incidentVisibility": incidentVisibility,
+        "incidentCreationMode": incidentCreationMode,
+        "incidentWatchKeys": incidentWatchKeys
+    }
+
+    data = await make_put_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+    #TODO
+
+@mcp.tool()
+async def Delete_Subscription(subscriptionId : str) -> dict[str, Any] | None :
+    """
+    Delete a subscription.
+    """
+    url = f"{BASE_URL}/user/subscriptions/{subscriptionId}/"
+
+    data = await make_delete_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+    #TODO
+
+@mcp.tool()
+async def Subscription_Search_Results(subscriptionId : str, datasource : str) -> dict[str, Any] | None :
+    """
+    Retrieve subscription results.
+    """
+    url = f"{BASE_URL}/user/subscriptions/{subscriptionId}/results/{datasource}/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+
+# Hostnames
+@mcp.tool()
+async def Hostnames_History(hostname : str, limit : int = 1000, padeState : str | None = None) -> dict[str, Any] | None :
+    """
+    Get the historical observations for a specific hostname in the "Hostnames" data source.
+    """
+    url = f"{BASE_URL}/hostname/{hostname}/"
+
+    params = {
+        "limit": limit,
+        "pad_state": pad_state,
+    }
+
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
+
+    data = await make_get_request(url, params)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+# Brands - PRO
+@mcp.tool()
+async def Available_Brands() -> dict[str, Any] | None :
+    """
+    Retrieve available brands.
+    """
+    url = f"{BASE_URL}/brands/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+    
+@mcp.tool()
+async def Brands() -> dict[str, Any] | None :
+    """
+    Retrieve brands.
+    """
+    url = f"{BASE_URL}/brands/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+# file
+@mcp.tool()
+async def Download_File(fileHash : str, password : str = "urlscan!", filename : str = "$fileHash.zip") -> dict[str, Any] | None :
+    """
+    Download a file.
+    """
+    url = f"{BASE_URL}/downloads/{fileHash}/"
+    params = {
+        "password": password,
+        "filename": filename,
+    }
+    data = await make_get_request(url, params)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+# incident
+@mcp.tool()
+async def Create_Incident(expireAfter : int | None = None, channels : list[str], observable : str, visibility : str, scanInterval : int | None = None, scanIntervalMode : str | None = None, watchedAttributes : list[str] | None = None, userAgents : list[str] | None = None, userAgentsPerInterval : int | None = None, countries : list[str] | None = None, countriesPerInterval : int | None = None, stopDelaySuspended : int | None = None, stopDelayInactive : int | None = None, stopDelayMalicious : int | None = None, scanIntervalAfterSuspended : int | None = None, scanIntervalAfterMalicious : int | None = None, incidentProfile : str | None = None) -> dict[str, Any] | None :
+    """
+    Create an incident.
+    """
+    url = f"{BASE_URL}/user/incidents/"
+    payload = {
+        "expireAfter": expireAfter,
+        "channels": channels,
+        "observable": observable,
+        "visibility": visibility,
+        "scanInterval": scanInterval,
+        "scanIntervalMode": scanIntervalMode,
+        "watchedAttributes": watchedAttributes,
+        "userAgents": userAgents,
+        "userAgentsPerInterval": userAgentsPerInterval,
+        "countries": countries,
+        "countriesPerInterval": countriesPerInterval,
+        "stopDelaySuspended": stopDelaySuspended,
+        "stopDelayInactive": stopDelayInactive,
+        "stopDelayMalicious": stopDelayMalicious,
+        "scanIntervalAfterSuspended": scanIntervalAfterSuspended,
+        "scanIntervalAfterMalicious": scanIntervalAfterMalicious,
+        "incidentProfile": incidentProfile,
+    }
+    data = await make_post_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Get_Incident(incidentId : str) -> dict[str, Any] | None :
+    """
+    Get details for a specific incident.
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Update_Incident_options(incidentId : str, expireAfter : int | None = None, channels : list[str], observable : str, visibility : str, scanInterval : int | None = None, scanIntervalMode : str | None = None, watchedAttributes : list[str] | None = None, userAgents : list[str] | None = None, userAgentsPerInterval : int | None = None, countries : list[str] | None = None, countriesPerInterval : int | None = None, stopDelaySuspended : int | None = None, stopDelayInactive : int | None = None, stopDelayMalicious : int | None = None, scanIntervalAfterSuspended : int | None = None, scanIntervalAfterMalicious : int | None = None, incidentProfile : str | None = None) -> dict[str, Any] | None :
+    """
+    Update specific runtime options of the incident
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/"
+    payload = {
+        "expireAfter": expireAfter,
+        "channels": channels,
+        "observable": observable,
+        "visibility": visibility,
+        "scanInterval": scanInterval,
+        "scanIntervalMode": scanIntervalMode,
+        "watchedAttributes": watchedAttributes,
+        "userAgents": userAgents,
+        "userAgentsPerInterval": userAgentsPerInterval,
+        "countries": countries,
+        "countriesPerInterval": countriesPerInterval,
+        "stopDelaySuspended": stopDelaySuspended,
+        "stopDelayInactive": stopDelayInactive,
+        "stopDelayMalicious": stopDelayMalicious,
+        "scanIntervalAfterSuspended": scanIntervalAfterSuspended,
+        "scanIntervalAfterMalicious": scanIntervalAfterMalicious,
+        "incidentProfile": incidentProfile,
+    }
+    data = await make_put_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data 
+
+@mcp.tool()
+async def Close_Incident(incidentId : str) -> dict[str, Any] | None :
+    """
+    Close an incident.
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/close/"
+    data = await make_put_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Restart_Incident(incidentId : str) -> dict[str, Any] | None :
+    """
+    Restart an incident.
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/restart/"
+    data = await make_put_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Copy_Incident(incidentId : str) -> dict[str, Any] | None :
+    """
+    Copy an incident.
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/copy/"
+    data = await make_post_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Fork_Incident(incidentId : str) -> dict[str, Any] | None :
+    """
+    Copy an incident along with its history (incident states).
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/fork/"
+    data = await make_post_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Get_Watchable_Attributes() -> dict[str, Any] | None :
+    """
+    Get the list of attributes which can be supplied to the watchedAttributes property of the incident.
+
+
+    """
+    url = f"{BASE_URL}/user/watchableAttributes/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Get_Incident_States(incidentId : str) -> dict[str, Any] | None :
+    """
+    Retrieve individual incident states of an incident.
+    """
+    url = f"{BASE_URL}/user/incidents/{incidentId}/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+# Channels
+@mcp.tool()
+async def channels() -> dict[str, Any] | None :
+    """
+    Get a list of notification channels for the current user.
+    """
+    url = f"{BASE_URL}/user/channels/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def create_channel(_id : str | None = None, type : str, webhookURL : str | None = None, frequency : str | None = None, emailAddresses : list[str] | None = None, utcTime : str | None = None, name : str, isActive : bool | None = None, isDefault : bool | None = None, ignoreTime : bool | None = None, weekDays : list[str] | None = None, permissions : list[str] | None = None) -> dict[str, Any] | None :
+    """
+    Create a new notification channel for the current user.
+    """
+    url = f"{BASE_URL}/user/channels/"
+    payload = {
+        "_id": _id,
+        "type": type,
+        "webhookURL": webhookURL,
+        "frequency": frequency,
+        "emailAddresses": emailAddresses,
+        "utcTime": utcTime,
+        "name": name,
+        "isActive": isActive,
+        "isDefault": isDefault,
+        "ignoreTime": ignoreTime,
+        "weekDays": weekDays,
+        "permissions": permissions,
+    }
+    data = await make_post_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Channel_Search_Results(channelId : str) -> dict[str, Any] | None :
+    """
+    Search for results in a specific notification channel.
+    """
+    url = f"{BASE_URL}/user/channels/{channelId}/"
+    data = await make_get_request(url)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def update_channel(channelId : str, _id : str | None = None, type : str, webhookURL : str | None = None, frequency : str | None = None, emailAddresses : list[str] | None = None, utcTime : str | None = None, name : str, isActive : bool | None = None, isDefault : bool | None = None, ignoreTime : bool | None = None, weekDays : list[str] | None = None, permissions : list[str] | None = None) -> dict[str, Any] | None :
+    """
+    Update a notification channel for the current user.
+    """
+    url = f"{BASE_URL}/user/channels/{channelId}/"
+    payload = {
+        "_id": _id,
+        "type": type,
+        "webhookURL": webhookURL,
+        "frequency": frequency,
+        "emailAddresses": emailAddresses,
+        "utcTime": utcTime,
+        "name": name,
+        "isActive": isActive,
+        "isDefault": isDefault,
+        "ignoreTime": ignoreTime,
+        "weekDays": weekDays,
+        "permissions": permissions,
+    }
+    
+    data = await make_put_request(url, payload)
+
+    if not data:
+        logging.error("No data received")
+        return None
+    
+    logging.info(f"return: {data}")
+    return data
+
+
+
+
+
 
 def main():
     # Initialize and run the server
