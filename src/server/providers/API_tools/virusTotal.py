@@ -208,7 +208,7 @@ async def Request_an_IP_address_rescan(IP : str) -> dict[str, Any] | None :
     example: IP=' """
 
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/analyse"
     data = await make_post_request(url)
@@ -227,7 +227,7 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
     example: IP=' """
 
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     params = {"limit": limit}
 
@@ -250,7 +250,7 @@ async def Add_a_comment_to_an_IP_address(IP: str, comment: str) -> dict[str, Any
     """
 
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/comments"
     
@@ -279,7 +279,7 @@ async def Get_objects_related_to_an_IP_address(IP : str, relationship : str, lim
     """
 
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     params = {"limit": limit}
 
@@ -302,7 +302,7 @@ async def Get_object_descriptors_related_to_an_IP_address(IP : str, relationship
     example: IP=' '
     """
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/relationships/{relationship}"
     data = await make_get_request(url)
@@ -320,7 +320,7 @@ async def Get_votes_on_an_IP_address(IP : str) -> dict[str, Any] | None :
     example: IP=' '
     """
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/votes"
     data = await make_get_request(url)
@@ -338,7 +338,7 @@ async def Add_a_vote_to_an_IP_address(IP: str, vote: dict[str, Any]) -> dict[str
     example: IP=' ', vote={'verdict': 'malicious'}
     """
     if not is_valid_ip(IP):
-    raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
+        raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/votes"
     
