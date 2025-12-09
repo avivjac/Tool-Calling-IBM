@@ -31,7 +31,7 @@ def is_valid_domain(domain: str) -> bool:
         logger.error(f"Invalid domain name (too long): {domain}")    
         return False   
     
-    regex = r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)\.(?:[A-Za-z]{2,})$"
+    regex = r"^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$"
     result = re.match(regex, domain) is not None
     logger.info(f"Domain validation result for {domain}: {result}")
     return result
@@ -116,7 +116,7 @@ def is_valid_cve(cve: str) -> bool:
 # Validate CPE identifier
 def is_valid_cpe(cpe: str) -> bool:
     logger.info(f"Validating CPE identifier: {cpe}")
-    regex = r"^cpe:2\.3:[aho]:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+$"
+    regex = r"^cpe:2\.3:[aho](?::[^:]+){10}$"
     return re.match(regex, cpe) is not None
 
 # Validate CWE identifier
