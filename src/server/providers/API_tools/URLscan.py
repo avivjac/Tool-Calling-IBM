@@ -13,6 +13,9 @@ import os
 import logging
 import utils.validate as validate
 
+class InvalidURLException(Exception):
+    pass
+
 load_dotenv()
 
 # ---------- Logging ----------
@@ -39,28 +42,35 @@ if not API_KEY:
 # ---------- Helper Request Functions ----------
 
 # Helper function to make requests to VirusTotal API
-async def make_get_request(url : str) -> dict[str, Any] | None :
-    response, error = None, None
+async def make_get_request(url: str) -> dict[str, Any]:
     headers = {
         "x-apikey": API_KEY,
     }
+
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, headers=headers, timeout=30.0)
-            response.raise_for_status()
-            response = response.json()
-        # esception
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
         except httpx.HTTPStatusError as e:
             logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            error = str(e)
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
 
-    logging.info(f"GET {url} - Response: {response}, Error: {error}")
-    return {
-        "data": response,
-        "error": error
-        }
 
-async def make_get_request(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
+async def make_get_request_with_params(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
     headers = {
         "x-apikey": API_KEY,
     }
@@ -69,17 +79,28 @@ async def make_get_request(url : str, params : dict[str , Any]) -> dict[str, Any
     for key, value in params.items():
         url += f"{key}={value}&"
 
-    url = url[:-1]  # remove last &
+    url = url[:-1]  
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, headers=headers, timeout=30.0)
-            response.raise_for_status()
-            return response.json()
-        # esception
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
         except httpx.HTTPStatusError as e:
             logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            # raise(e)
-            return None
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
 
 async def make_post_request(url : str) -> dict[str, Any] | None :
     headers = {
@@ -87,28 +108,81 @@ async def make_post_request(url : str) -> dict[str, Any] | None :
     }
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers=headers, timeout=30.0)
-            response.raise_for_status()
-            return response.json()
-        # esception
+            resp = await client.post(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
         except httpx.HTTPStatusError as e:
             logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return None
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
         
-async def make_post_request(url : str, body : dict[str, Any]) -> dict[str, Any] | None :
+async def make_post_request_with_params(url : str, body : dict[str, Any]) -> dict[str, Any] | None :
     headers = {
         "x-apikey": API_KEY,
     }
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(url, headers=headers, json=body, timeout=30.0)
-            response.raise_for_status()
-            return response.json()
-        # esception
+            resp = await client.post(url, headers=headers, json=body, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
         except httpx.HTTPStatusError as e:
             logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return None
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
 
+async def make_post_request_form(url: str, form: dict[str, Any]) -> dict[str, Any]:
+    headers = {
+        "x-apikey": API_KEY,
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(url, headers=headers, data=form, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
+
+        except httpx.HTTPStatusError as e:
+            logging.error(f"HTTP error {e.response.status_code} while requesting {e.request.url!r}.")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
 # ---------- Tools ----------
 # Implemention of the APIs endpoints as tools
 
@@ -128,19 +202,19 @@ async def API_Quotas() -> dict[str, Any] | None :
     return data
 
 # PRO tools (- to delete ?)
-@mcp.tool()
-async def User_Information(username : str) -> dict[str, Any] | None :
-    """
-    Get information about the current user or API key making the request.
-    """
-    url = f"{BASE_URL}/pro/{username}"
-    data = await make_get_request(url)
+# @mcp.tool()
+# async def User_Information(username : str) -> dict[str, Any] | None :
+#     """
+#     Get information about the current user or API key making the request.
+#     """
+#     url = f"{BASE_URL}/pro/{username}"
+#     data = await make_get_request(url)
 
-    if data["error"]:
-        logging.error("No data received")
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data
+#     logging.info(f"return: {data}")
+#     return data
 
 # Scanning
 @mcp.tool()
@@ -150,6 +224,10 @@ async def Scan(url : str, visibility : str = "public", country : str | None = No
     visibility: public / unlisted / private
     """
     api_url = f"{BASE_URL}/scan"
+
+    if validate.is_valid_url(url):
+        logging.error("Invalid URL")
+        raise InvalidURLException("Invalid URL")
 
     # Request Body - Test - is it ok with empty parameters ?
     body = {
@@ -162,7 +240,7 @@ async def Scan(url : str, visibility : str = "public", country : str | None = No
         "customagent": customagent
     }
 
-    data = await make_post_request(api_url, body)
+    data = await make_post_request_with_params(api_url, body)
 
     if data["error"]:
         logging.error("No data received")
@@ -189,10 +267,6 @@ async def Screenshot(scanid : str) -> dict[str, Any] | None :
     """
     Use the scan UUID to retrieve the screenshot for a scan once the scan has finished.
     """
-
-    if not isinstance(scanid, str):
-        logging.error("Invalid scanid")
-        return None
     
     data, error = None, None
     url = f"{BASE_URL}/screenshot/{scanid}.png"
@@ -256,6 +330,10 @@ async def Search(query : str, size : int | None = None, search_after : int | Non
     """
     url = f"{BASE_URL}/search/"
 
+    if validate.is_valid_datasource(datasource):
+        logging.error("Invalid datasource")
+        raise ValueError("Invalid datasource")
+
     params = {
         "q": query,
         "size": size,
@@ -266,7 +344,7 @@ async def Search(query : str, size : int | None = None, search_after : int | Non
     # Remove None values from params
     params = {k: v for k, v in params.items() if v is not None}
 
-    data = await make_get_request(url, params)
+    data = await make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error("No data received")
@@ -334,6 +412,11 @@ async def Live_Scan_Get_Resource(scannerid : str, resourceType : str, resourceId
     """
     Using the Scan ID received from the Submission API, you can use the Result API to poll for the scan.
     """
+
+    if resourceType not in ["result", "screenshot", "dom", "response", "download"]:
+        logging.error("Invalid resource type")
+        raise ValueError("Invalid resource type")
+
     url = f"{BASE_URL}/livescan/{scannerid}/{resourceType}/{resourceId}"
     data = await make_get_request(url)
 
@@ -393,32 +476,32 @@ async def Saved_Searches() -> dict[str, Any] | None :
     logging.info(f"return: {data}")
     return data 
 
-@mcp.tool()
-async def Create_Saved_Search(datasource : str, name : str, query : str, description : str | None = None, longDescription : str | None = None, permissions : list[str] | None = None, tlp : str | None = None, usertags : list[str] | None = None) -> dict[str, Any] | None :
-    """
-    Create a saved search.
-    """
+# @mcp.tool()
+# async def Create_Saved_Search(datasource : str, name : str, query : str, description : str | None = None, longDescription : str | None = None, permissions : list[str] | None = None, tlp : str | None = None, usertags : list[str] | None = None) -> dict[str, Any] | None :
+#     """
+#     Create a saved search.
+#     """
 
-    url = f"{BASE_URL}/user/searches/"
+#     url = f"{BASE_URL}/user/searches/"
 
-    payload = {
-        "datasource": datasource,
-        "description": description,
-        "longDescription": longDescription,
-        "name": name,
-        "permissions": permissions,
-        "query": query,
-        "tlp": tlp,
-        "usertags": usertags
-    }
+#     payload = {
+#         "datasource": datasource,
+#         "description": description,
+#         "longDescription": longDescription,
+#         "name": name,
+#         "permissions": permissions,
+#         "query": query,
+#         "tlp": tlp,
+#         "usertags": usertags
+#     }
 
-    data = await make_post_request(url, payload)
+#     data = await make_post_request(url, payload)
 
-    if data["error"]:
-        logging.error("No data received")
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data 
+#     logging.info(f"return: {data}")
+#     return data 
 
 # @mcp.tool()
 # async def Update_Saved_Search(searchId : str, datasource : str, name : str, query : str, description : str | None = None, longDescription : str | None = None,  permissions : list[str] | None = None, tlp : str | None = None, usertags : list[str] | None = None) -> dict[str, Any] | None :
@@ -464,7 +547,7 @@ async def Create_Saved_Search(datasource : str, name : str, query : str, descrip
 @mcp.tool()
 async def Saved_Search_Search_Results(searchId : str) -> dict[str, Any] | None :
     """
-    Retrieve saved search results.
+    Get the search results for a specific Saved Search.
     """
     url = f"{BASE_URL}/user/searches/{searchId}/results/"
     data = await make_get_request(url)
@@ -605,7 +688,7 @@ async def Hostnames_History(hostname : str, limit : int = 1000, pageState : str 
     # Remove None values from params
     params = {k: v for k, v in params.items() if v is not None}
 
-    data = await make_get_request(url, params)
+    data = await make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error("No data received")
@@ -649,54 +732,57 @@ async def Download_a_File(fileHash : str, password : str = "urlscan!", filename 
     """
     Download a file.
     """
+
+    if not validate.is_valid_hash(fileHash):
+        logging.error("Invalid file hash")
+        raise ValueError("Invalid file hash")
+    
     url = f"{BASE_URL}/downloads/{fileHash}/"
     params = {
         "password": password,
         "filename": filename,
     }
-    data = await make_get_request(url, params)
+    data = await make_get_request_with_params(url, params)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data 
 
 # incident
-@mcp.tool()
-async def Create_Incident(channels : list[str], observable : str, visibility : str, expireAfter : int | None = None, scanInterval : int | None = None, scanIntervalMode : str | None = None, watchedAttributes : list[str] | None = None, userAgents : list[str] | None = None, userAgentsPerInterval : int | None = None, countries : list[str] | None = None, countriesPerInterval : int | None = None, stopDelaySuspended : int | None = None, stopDelayInactive : int | None = None, stopDelayMalicious : int | None = None, scanIntervalAfterSuspended : int | None = None, scanIntervalAfterMalicious : int | None = None, incidentProfile : str | None = None) -> dict[str, Any] | None :
-    """
-    Create an incident.
-    """
-    url = f"{BASE_URL}/user/incidents/"
-    payload = {
-        "expireAfter": expireAfter,
-        "channels": channels,
-        "observable": observable,
-        "visibility": visibility,
-        "scanInterval": scanInterval,
-        "scanIntervalMode": scanIntervalMode,
-        "watchedAttributes": watchedAttributes,
-        "userAgents": userAgents,
-        "userAgentsPerInterval": userAgentsPerInterval,
-        "countries": countries,
-        "countriesPerInterval": countriesPerInterval,
-        "stopDelaySuspended": stopDelaySuspended,
-        "stopDelayInactive": stopDelayInactive,
-        "stopDelayMalicious": stopDelayMalicious,
-        "scanIntervalAfterSuspended": scanIntervalAfterSuspended,
-        "scanIntervalAfterMalicious": scanIntervalAfterMalicious,
-        "incidentProfile": incidentProfile,
-    }
-    data = await make_post_request(url, payload)
+# @mcp.tool()
+# async def Create_Incident(channels : list[str], observable : str, visibility : str, expireAfter : int | None = None, scanInterval : int | None = None, scanIntervalMode : str | None = None, watchedAttributes : list[str] | None = None, userAgents : list[str] | None = None, userAgentsPerInterval : int | None = None, countries : list[str] | None = None, countriesPerInterval : int | None = None, stopDelaySuspended : int | None = None, stopDelayInactive : int | None = None, stopDelayMalicious : int | None = None, scanIntervalAfterSuspended : int | None = None, scanIntervalAfterMalicious : int | None = None, incidentProfile : str | None = None) -> dict[str, Any] | None :
+#     """
+#     Create an incident.
+#     """
+#     url = f"{BASE_URL}/user/incidents/"
+#     payload = {
+#         "expireAfter": expireAfter,
+#         "channels": channels,
+#         "observable": observable,
+#         "visibility": visibility,
+#         "scanInterval": scanInterval,
+#         "scanIntervalMode": scanIntervalMode,
+#         "watchedAttributes": watchedAttributes,
+#         "userAgents": userAgents,
+#         "userAgentsPerInterval": userAgentsPerInterval,
+#         "countries": countries,
+#         "countriesPerInterval": countriesPerInterval,
+#         "stopDelaySuspended": stopDelaySuspended,
+#         "stopDelayInactive": stopDelayInactive,
+#         "stopDelayMalicious": stopDelayMalicious,
+#         "scanIntervalAfterSuspended": scanIntervalAfterSuspended,
+#         "scanIntervalAfterMalicious": scanIntervalAfterMalicious,
+#         "incidentProfile": incidentProfile,
+#     }
+#     data = await make_post_request(url, payload)
 
-    if not data:
-        logging.error("No data received")
-        return None
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data 
+#     logging.info(f"return: {data}")
+#     return data 
 
 @mcp.tool()
 async def Get_Incident(incidentId : str) -> dict[str, Any] | None :
@@ -706,76 +792,72 @@ async def Get_Incident(incidentId : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/incidents/{incidentId}/"
     data = await make_get_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data 
 
-@mcp.tool()
-async def Update_Incident_options(incidentId : str, channels : list[str], observable : str, visibility : str, expireAfter : int | None = None, scanInterval : int | None = None, scanIntervalMode : str | None = None, watchedAttributes : list[str] | None = None, userAgents : list[str] | None = None, userAgentsPerInterval : int | None = None, countries : list[str] | None = None, countriesPerInterval : int | None = None, stopDelaySuspended : int | None = None, stopDelayInactive : int | None = None, stopDelayMalicious : int | None = None, scanIntervalAfterSuspended : int | None = None, scanIntervalAfterMalicious : int | None = None, incidentProfile : str | None = None) -> dict[str, Any] | None :
-    """
-    Update specific runtime options of the incident
-    """
-    url = f"{BASE_URL}/user/incidents/{incidentId}/"
-    payload = {
-        "expireAfter": expireAfter,
-        "channels": channels,
-        "observable": observable,
-        "visibility": visibility,
-        "scanInterval": scanInterval,
-        "scanIntervalMode": scanIntervalMode,
-        "watchedAttributes": watchedAttributes,
-        "userAgents": userAgents,
-        "userAgentsPerInterval": userAgentsPerInterval,
-        "countries": countries,
-        "countriesPerInterval": countriesPerInterval,
-        "stopDelaySuspended": stopDelaySuspended,
-        "stopDelayInactive": stopDelayInactive,
-        "stopDelayMalicious": stopDelayMalicious,
-        "scanIntervalAfterSuspended": scanIntervalAfterSuspended,
-        "scanIntervalAfterMalicious": scanIntervalAfterMalicious,
-        "incidentProfile": incidentProfile,
-    }
-    data = await make_put_request(url, payload)
+# @mcp.tool()
+# async def Update_Incident_options(incidentId : str, channels : list[str], observable : str, visibility : str, expireAfter : int | None = None, scanInterval : int | None = None, scanIntervalMode : str | None = None, watchedAttributes : list[str] | None = None, userAgents : list[str] | None = None, userAgentsPerInterval : int | None = None, countries : list[str] | None = None, countriesPerInterval : int | None = None, stopDelaySuspended : int | None = None, stopDelayInactive : int | None = None, stopDelayMalicious : int | None = None, scanIntervalAfterSuspended : int | None = None, scanIntervalAfterMalicious : int | None = None, incidentProfile : str | None = None) -> dict[str, Any] | None :
+#     """
+#     Update specific runtime options of the incident
+#     """
+#     url = f"{BASE_URL}/user/incidents/{incidentId}/"
+#     payload = {
+#         "expireAfter": expireAfter,
+#         "channels": channels,
+#         "observable": observable,
+#         "visibility": visibility,
+#         "scanInterval": scanInterval,
+#         "scanIntervalMode": scanIntervalMode,
+#         "watchedAttributes": watchedAttributes,
+#         "userAgents": userAgents,
+#         "userAgentsPerInterval": userAgentsPerInterval,
+#         "countries": countries,
+#         "countriesPerInterval": countriesPerInterval,
+#         "stopDelaySuspended": stopDelaySuspended,
+#         "stopDelayInactive": stopDelayInactive,
+#         "stopDelayMalicious": stopDelayMalicious,
+#         "scanIntervalAfterSuspended": scanIntervalAfterSuspended,
+#         "scanIntervalAfterMalicious": scanIntervalAfterMalicious,
+#         "incidentProfile": incidentProfile,
+#     }
+#     data = await make_put_request(url, payload)
 
-    if not data:
-        logging.error("No data received")
-        return None
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data 
+#     logging.info(f"return: {data}")
+#     return data 
 
-@mcp.tool()
-async def Close_Incident(incidentId : str) -> dict[str, Any] | None :
-    """
-    Close an incident.
-    """
-    url = f"{BASE_URL}/user/incidents/{incidentId}/close/"
-    data = await make_put_request(url)
+# @mcp.tool()
+# async def Close_Incident(incidentId : str) -> dict[str, Any] | None :
+#     """
+#     Close an incident.
+#     """
+#     url = f"{BASE_URL}/user/incidents/{incidentId}/close/"
+#     data = await make_put_request(url)
 
-    if not data:
-        logging.error("No data received")
-        return None
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data
+#     logging.info(f"return: {data}")
+#     return data
 
-@mcp.tool()
-async def Restart_Incident(incidentId : str) -> dict[str, Any] | None :
-    """
-    Restart an incident.
-    """
-    url = f"{BASE_URL}/user/incidents/{incidentId}/restart/"
-    data = await make_put_request(url)
+# @mcp.tool()
+# async def Restart_Incident(incidentId : str) -> dict[str, Any] | None :
+#     """
+#     Restart an incident.
+#     """
+#     url = f"{BASE_URL}/user/incidents/{incidentId}/restart/"
+#     data = await make_put_request(url)
 
-    if not data:
-        logging.error("No data received")
-        return None
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data
+#     logging.info(f"return: {data}")
+#     return data
 
 @mcp.tool()
 async def Copy_Incident(incidentId : str) -> dict[str, Any] | None :
@@ -785,9 +867,8 @@ async def Copy_Incident(incidentId : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/incidents/{incidentId}/copy/"
     data = await make_post_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data
@@ -800,9 +881,8 @@ async def Fork_Incident(incidentId : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/incidents/{incidentId}/fork/"
     data = await make_post_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data
@@ -817,9 +897,8 @@ async def Get_Watchable_Attributes() -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/watchableAttributes/"
     data = await make_get_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data
@@ -832,9 +911,8 @@ async def Get_Incident_States(incidentId : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/incidents/{incidentId}/"
     data = await make_get_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data
@@ -848,41 +926,39 @@ async def channels() -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/channels/"
     data = await make_get_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data
 
-@mcp.tool()
-async def create_channel(type : str, name : str, id : str | None = None, webhookURL : str | None = None, frequency : str | None = None, emailAddresses : list[str] | None = None, utcTime : str | None = None, isActive : bool | None = None, isDefault : bool | None = None, ignoreTime : bool | None = None, weekDays : list[str] | None = None, permissions : list[str] | None = None) -> dict[str, Any] | None :
-    """
-    Create a new notification channel for the current user.
-    """
-    url = f"{BASE_URL}/user/channels/"
-    payload = {
-        "_id": id,
-        "type": type,
-        "webhookURL": webhookURL,
-        "frequency": frequency,
-        "emailAddresses": emailAddresses,
-        "utcTime": utcTime,
-        "name": name,
-        "isActive": isActive,
-        "isDefault": isDefault,
-        "ignoreTime": ignoreTime,
-        "weekDays": weekDays,
-        "permissions": permissions,
-    }
-    data = await make_post_request(url, payload)
+# @mcp.tool()
+# async def create_channel(type : str, name : str, id : str | None = None, webhookURL : str | None = None, frequency : str | None = None, emailAddresses : list[str] | None = None, utcTime : str | None = None, isActive : bool | None = None, isDefault : bool | None = None, ignoreTime : bool | None = None, weekDays : list[str] | None = None, permissions : list[str] | None = None) -> dict[str, Any] | None :
+#     """
+#     Create a new notification channel for the current user.
+#     """
+#     url = f"{BASE_URL}/user/channels/"
+#     payload = {
+#         "_id": id,
+#         "type": type,
+#         "webhookURL": webhookURL,
+#         "frequency": frequency,
+#         "emailAddresses": emailAddresses,
+#         "utcTime": utcTime,
+#         "name": name,
+#         "isActive": isActive,
+#         "isDefault": isDefault,
+#         "ignoreTime": ignoreTime,
+#         "weekDays": weekDays,
+#         "permissions": permissions,
+#     }
+#     data = await make_post_request(url, payload)
 
-    if not data:
-        logging.error("No data received")
-        return None
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data
+#     logging.info(f"return: {data}")
+#     return data
 
 @mcp.tool()
 async def Channel_Search_Results(channelId : str) -> dict[str, Any] | None :
@@ -892,46 +968,40 @@ async def Channel_Search_Results(channelId : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/user/channels/{channelId}/"
     data = await make_get_request(url)
 
-    if not data:
+    if data["error"]:
         logging.error("No data received")
-        return None
     
     logging.info(f"return: {data}")
     return data
 
-@mcp.tool()
-async def update_channel(channelId : str, type : str, name : str, _id : str | None = None, webhookURL : str | None = None, frequency : str | None = None, emailAddresses : list[str] | None = None, utcTime : str | None = None, isActive : bool | None = None, isDefault : bool | None = None, ignoreTime : bool | None = None, weekDays : list[str] | None = None, permissions : list[str] | None = None) -> dict[str, Any] | None :
-    """
-    Update a notification channel for the current user.
-    """
-    url = f"{BASE_URL}/user/channels/{channelId}/"
-    payload = {
-        "_id": _id,
-        "type": type,
-        "webhookURL": webhookURL,
-        "frequency": frequency,
-        "emailAddresses": emailAddresses,
-        "utcTime": utcTime,
-        "name": name,
-        "isActive": isActive,
-        "isDefault": isDefault,
-        "ignoreTime": ignoreTime,
-        "weekDays": weekDays,
-        "permissions": permissions,
-    }
+# @mcp.tool()
+# async def update_channel(channelId : str, type : str, name : str, _id : str | None = None, webhookURL : str | None = None, frequency : str | None = None, emailAddresses : list[str] | None = None, utcTime : str | None = None, isActive : bool | None = None, isDefault : bool | None = None, ignoreTime : bool | None = None, weekDays : list[str] | None = None, permissions : list[str] | None = None) -> dict[str, Any] | None :
+#     """
+#     Update a notification channel for the current user.
+#     """
+#     url = f"{BASE_URL}/user/channels/{channelId}/"
+#     payload = {
+#         "_id": _id,
+#         "type": type,
+#         "webhookURL": webhookURL,
+#         "frequency": frequency,
+#         "emailAddresses": emailAddresses,
+#         "utcTime": utcTime,
+#         "name": name,
+#         "isActive": isActive,
+#         "isDefault": isDefault,
+#         "ignoreTime": ignoreTime,
+#         "weekDays": weekDays,
+#         "permissions": permissions,
+#     }
     
-    data = await make_put_request(url, payload)
+#     data = await make_put_request(url, payload)
 
-    if not data:
-        logging.error("No data received")
-        return None
+#     if data["error"]:
+#         logging.error("No data received")
     
-    logging.info(f"return: {data}")
-    return data
-
-
-
-
+#     logging.info(f"return: {data}")
+#     return data
 
 
 def main():

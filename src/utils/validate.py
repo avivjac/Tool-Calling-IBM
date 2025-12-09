@@ -135,3 +135,8 @@ def is_valid_cidr(cidr: str) -> bool:
         logger.error(f"Invalid CIDR notation: {cidr}")
         return False
     
+# Validate datasource
+# using for search endpoint at URLscan.py
+def is_valid_datasource(datasource: str) -> bool:
+    logger.info(f"Validating datasource: {datasource}")
+    return datasource in ["scans", "hostnames", "incidents", "notifications"]
