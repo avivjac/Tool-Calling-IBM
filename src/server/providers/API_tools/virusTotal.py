@@ -182,7 +182,7 @@ async def Get_an_IP_address_report(IP : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/ip_addresses/{IP}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
 
     logging.info("return: {data}")
@@ -202,7 +202,7 @@ async def Request_an_IP_address_rescan(IP : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/ip_addresses/{IP}/analyse"
     data = await make_post_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     
     logging.info("return: {data}")
@@ -226,7 +226,7 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
     url = f"{BASE_URL}/ip_addresses/{IP}/comments"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -254,7 +254,7 @@ async def Add_a_comment_to_an_IP_address(IP: str, comment: str) -> dict[str, Any
 
     data = await make_post_request_with_params(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -279,7 +279,7 @@ async def Get_objects_related_to_an_IP_address(IP : str, relationship : str, lim
     url = f"{BASE_URL}/ip_addresses/{IP}/{relationship}"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -296,7 +296,7 @@ async def Get_object_descriptors_related_to_an_IP_address(IP : str, relationship
     url = f"{BASE_URL}/ip_addresses/{IP}/relationships/{relationship}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -314,7 +314,7 @@ async def Get_votes_on_an_IP_address(IP : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/ip_addresses/{IP}/votes"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -342,7 +342,7 @@ async def Add_a_vote_to_an_IP_address(IP: str, vote: dict[str, Any]) -> dict[str
 
     data = await make_post_request_with_params(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -364,7 +364,7 @@ async def Get_a_domain_report(domain: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/domains/{domain}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -382,7 +382,7 @@ async def Request_an_domain_rescan(domain: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/domains/{domain}/analyse"
     data = await make_post_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -405,7 +405,7 @@ async def Get_comments_on_a_domain(domain: str, limit: int | None = 10, cursor: 
     url = f"{BASE_URL}/domains/{domain}/comments"
     data = await make_get_request(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -432,7 +432,7 @@ async def Add_a_comment_to_a_domain(domain: str, comment: str) -> dict[str, Any]
 
     data = await make_post_request(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -455,7 +455,7 @@ async def Get_objects_related_to_a_domain(domain: str, relationship: str, limit:
     url = f"{BASE_URL}/domains/{domain}/{relationship}"
     data = await make_get_request(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -478,7 +478,7 @@ async def Get_object_descriptors_related_to_a_domain(domain: str, relationship: 
     url = f"{BASE_URL}/domains/{domain}/relationships/{relationship}"
     data = await make_get_request(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -496,7 +496,7 @@ async def Get_a_DNS_resolution_object(domain: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/resolutions/{domain}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -514,7 +514,7 @@ async def Get_votes_on_a_domain(domain: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/domains/{domain}/votes"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -542,7 +542,7 @@ async def Add_a_vote_to_a_domain(domain: str, verdict : str) -> dict[str, Any] |
 
     data = await make_post_request(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -570,7 +570,7 @@ async def Upload_a_file(file_path: str, password: str | None = None) -> dict[str
         body["data"]["attributes"]["password"] = password
 
     data = await make_post_request_with_params(url, body)
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -585,7 +585,7 @@ async def Get_a_URL_for_uploading_large_files() -> dict[str, Any] | None:
     url = f"{BASE_URL}/files/upload_url"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -601,7 +601,7 @@ async def Get_a_file_report(file_id: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/files/{file_id}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -617,7 +617,7 @@ async def Request_a_file_rescan(file_id: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/files/{file_id}/analyse"
     data = await make_post_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -637,7 +637,7 @@ async def Get_comments_on_a_file(file_id: str, limit: int | None = 10, cursor: s
     url = f"{BASE_URL}/files/{file_id}/comments"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -662,7 +662,7 @@ async def Add_a_comment_to_a_file(file_id: str, comment: str) -> dict[str, Any] 
 
     data = await make_post_request_with_params(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -682,7 +682,7 @@ async def Get_objects_related_to_a_file(file_id: str, relationship: str, limit: 
     url = f"{BASE_URL}/files/{file_id}/{relationship}"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -697,7 +697,7 @@ async def Get_object_descriptors_related_to_a_file(file_id: str, relationship: s
     url = f"{BASE_URL}/files/{file_id}/relationships/{relationship}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -712,7 +712,7 @@ async def Get_a_crowdsourced_Sigma_rule_object(rule_id: str) -> dict[str, Any] |
     url = f"{BASE_URL}/sigma_rules/{rule_id}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -726,7 +726,7 @@ async def Get_a_crowdsourced_YARA_ruleset(ruleset_id: str) -> dict[str, Any] | N
     url = f"{BASE_URL}/yara_rulesets/{ruleset_id}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -746,7 +746,7 @@ async def Get_votes_on_a_file(file_id: str, limit: int | None = 10, cursor: str 
     url = f"{BASE_URL}/files/{file_id}/votes"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -772,7 +772,7 @@ async def Add_a_vote_to_a_file(file_id: str, vote: str) -> dict[str, Any] | None
 
     data = await make_post_request_with_params(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -787,7 +787,7 @@ async def Get_a_summary_of_all_behavior_reports_for_a_file(file_id: str) -> dict
     url = f"{BASE_URL}/files/{file_id}/behaviour_summary"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -802,7 +802,7 @@ async def Get_a_summary_of_all_MITRE_ATTACK_techniques_observed_in_a_file(file_i
     url = f"{BASE_URL}/files/{file_id}/behaviour_mitre_trees"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -816,7 +816,7 @@ async def Get_all_behavior_reports_for_a_file(file_id: str) -> dict[str, Any] | 
     url = f"{BASE_URL}/files/{file_id}/behaviours"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -830,7 +830,7 @@ async def Get_a_file_behaviour_report_from_a_sandbox(sandbox_id: str) -> dict[st
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -848,7 +848,7 @@ async def Get_objects_related_to_a_behaviour_report(sandbox_id: str, relationshi
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}/{relationship}"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -867,7 +867,7 @@ async def Get_object_descriptors_related_to_a_behaviour_report(sandbox_id: str, 
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}/relationships/{relationship}"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -881,7 +881,7 @@ async def Get_a_detailed_HTML_behaviour_report(sandbox_id: str) -> dict[str, Any
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}/html"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -906,7 +906,7 @@ async def Scan_URL(url: str) -> dict[str, Any] | None:
 
     data = await make_post_request_form(endpoint, form_data)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT URL scan: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -921,7 +921,7 @@ async def Get_a_URL_report(url_id: str) -> dict[str, Any] | None:
     url = f"{BASE_URL}/urls/{url_id}"
     data = await make_get_request(url)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT URL report: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -935,7 +935,7 @@ async def Request_a_URL_rescan(url_id: str) -> dict[str, Any] | None:
     endpoint = f"{BASE_URL}/urls/{url_id}/analyse"
     data = await make_post_request(endpoint)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error in VT URL rescan: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -953,7 +953,7 @@ async def Get_comments_on_a_URL(url_id: str, limit: int | None = 10, cursor: str
     url = f"{BASE_URL}/urls/{url_id}/comments"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error fetching VT URL comments: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -977,7 +977,7 @@ async def Add_a_comment_on_a_URL(url_id: str, comment: str) -> dict[str, Any] | 
 
     data = await make_post_request_with_params(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error adding VT URL comment: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -996,7 +996,7 @@ async def Get_objects_related_to_a_URL(url_id: str, relationship: str, limit: in
     url = f"{BASE_URL}/urls/{url_id}/{relationship}"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error fetching related VT URL objects: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -1014,7 +1014,7 @@ async def Get_object_descriptors_related_to_a_URL(url_id: str, relationship: str
     url = f"{BASE_URL}/urls/{url_id}/relationships/{relationship}"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error fetching VT URL relationship descriptors: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -1032,7 +1032,7 @@ async def Get_votes_on_a_URL(url_id: str, limit: int | None = 10, cursor: str | 
     url = f"{BASE_URL}/urls/{url_id}/votes"
     data = await make_get_request_with_params(url, params)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error fetching VT URL votes: {data['error']}")
     logging.info("return: {data}")
     return data
@@ -1055,7 +1055,7 @@ async def Add_a_vote_on_a_URL(url_id: str, verdict: str) -> dict[str, Any] | Non
 
     data = await make_post_request_with_params(url, payload)
 
-    if data["error"] is not None:
+    if data["error"]:
         logging.error(f"Error adding VT URL vote: {data['error']}")
     logging.info("return: {data}")
     return data
