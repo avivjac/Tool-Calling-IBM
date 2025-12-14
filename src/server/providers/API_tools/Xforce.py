@@ -102,6 +102,57 @@ async def make_get_request_with_params(url : str, params : dict[str , Any]) -> d
                 "error": str(e),
             }
 
+async def make_get_request_with_headers(url: str, headers: dict[str, Any]) -> dict[str, Any]:
+    headers["x-apikey"] = API_KEY
+
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+
+async def make_get_request_with_headers_and_params(url: str, headers: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
+    headers["x-apikey"] = API_KEY
+
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(url, headers=headers, params=params, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+
+
 async def make_post_request(url : str) -> dict[str, Any] | None :
     headers = {
         "x-apikey": API_KEY,
@@ -761,7 +812,7 @@ async def Tag_Search(query : str) -> dict[str, Any] | None :
     params = {
         "query": query,
     }
-    
+
     data = await make_get_request_with_params(url, params)
 
     if data["error"]:
@@ -771,22 +822,328 @@ async def Tag_Search(query : str) -> dict[str, Any] | None :
 
     return data
 
+# TAXII2
 
+@mcp.tool()
+async def Get_API_Root_information(UserAgent : str | None = None) -> dict[str, Any] | None :
+    """ 
+    Returns the signature for a specific signature.
+    """
+    url = f"{BASE_URL}/taxii2"   
+    
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
 
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
 
+    return data
 
+@mcp.tool()
+async def Get_Server_Discovery_Resource(UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the signature for a specific signature.
+    """
+    url = f"{BASE_URL}/taxii2/discovery" 
 
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
 
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
 
+    return data
 
+@mcp.tool()
+async def Get_Collections(UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the signature for a specific signature.
+    """
+    url = f"{BASE_URL}/taxii2/collections"   
 
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
 
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
 
+    return data
 
+@mcp.tool()
+async def Get_Collections_by_ID(collection_id : str, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the signature for a specific signature.
+    """
+    url = f"{BASE_URL}/taxii2/collections/{collection_id}" 
 
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
 
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
 
+    return data
 
+@mcp.tool()
+async def Get_Objects_by_Collection_ID(collection_id : str, added_after : str | None = None, added_before : str | None = None, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the signature for a specific signature.
+    """
+    url = f"{BASE_URL}/taxii2/collections/{collection_id}/objects" 
+
+    query = {
+        "added_after": added_after,
+        "added_before": added_before,
+    }
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers_and_params(url, headers, query)
+    else :
+        data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_Object_by_Object_ID(collectionID : str, object_id : str, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the object for a specific object.
+    """
+    url = f"{BASE_URL}/taxii2/collections/{collectionID}/objects/{object_id}"   
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_object_version_by_object_ID(collectionID : str, object_id : str, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the object version for a specific object.
+    """
+    url = f"{BASE_URL}/taxii2/collections/{collectionID}/objects/{object_id}/versions"   
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_manifest_by_collectionID(collectionID : str, added_after : str | None = None, added_before : str | None = None, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns the manifest for a specific collection.
+    """
+    url = f"{BASE_URL}/taxii2/collections/{collectionID}/manifest"   
+
+    if not validate.is_valid_date(added_after) or not validate.is_valid_date(added_before) :
+        logging.error("Invalid date format")
+        raise ValueError("Invalid date format")
+
+    query = {
+        "added_after": added_after,
+        "added_before": added_before,
+    }
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers_and_params(url, headers, query)
+    else :
+        data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+# URL
+
+@mcp.tool()
+async def Get_URLs_by_Category(category : str, startDate : str | None = None, endDate : str | None = None, descending : str | None = None, limit : int | None = None, skip : int | None = None) -> dict[str, Any] | None :
+    """
+    Return a list of URLs according to the category and date range.
+    """
+    url = f"{BASE_URL}/url"
+
+    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
+        logging.error("Invalid date format")
+        raise ValueError("Invalid date format")
+
+    query = {
+        "category": category,
+        "startDate": startDate,
+        "endDate": endDate,
+        "descending": descending,
+        "limit": limit,
+        "skip": skip,
+    }
+
+    data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Gte_URL_Report(url : str) -> dict[str, Any] | None :
+    """
+    Returns the report for a specific URL.
+    """
+    if not validate.is_valid_url(url) :
+        logging.error("Invalid URL format")
+        raise ValueError("Invalid URL format")
+
+    url = f"{BASE_URL}/url/{url}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_URL_History(url : str) -> dict[str, Any] | None :
+    """
+    Returns the history for a specific URL.
+    """
+    if not validate.is_valid_url(url) :
+        logging.error("Invalid URL format")
+        raise ValueError("Invalid URL format")
+
+    url = f"{BASE_URL}/url/history/{url}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_Malware_for_URL(url : str) -> dict[str, Any] | None :
+    """
+    Returns the malware for a specific URL.
+    """
+    if not validate.is_valid_url(url) :
+        logging.error("Invalid URL format")
+        raise ValueError("Invalid URL format")
+
+    url = f"{BASE_URL}/url/malware/{url}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_URL_Updates(category : str, pull_id : int | None = None) -> dict[str, Any] | None :
+    """
+    Returns the updates for a specific URL.
+    """
+
+    url = f"{BASE_URL}/url/updates"
+
+    query = {
+        "category": category,
+        "pull_id": pull_id,
+    }
+
+    data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_URL_category_list() -> dict[str, Any] | None :
+    """
+    Returns the list of URL categories.
+    """
+    url = f"{BASE_URL}/url/categories"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+# Vulnerabilities
 
 
 

@@ -140,3 +140,23 @@ def is_valid_cidr(cidr: str) -> bool:
 def is_valid_datasource(datasource: str) -> bool:
     logger.info(f"Validating datasource: {datasource}")
     return datasource in ["scans", "hostnames", "incidents", "notifications"]
+
+# Validate date
+def is_valid_date(date_str: str) -> bool:
+    logger.info(f"Validating date: {date_str}")
+    # List of formats to check
+    formats = [
+        "%Y-%m-%d",
+        "%Y-%m-%dT%H:%M:%S.%fZ",
+        "%Y-%m-%dT%H:%M:%SZ"
+    ]
+    
+    for fmt in formats:
+        try:
+            datetime.datetime.strptime(date_str, fmt)
+            return True
+        except ValueError:
+            continue
+            
+    logger.error(f"Invalid date format: {date_str}")
+    return False
