@@ -18,7 +18,10 @@ class InvalidURLException(Exception):
 
 load_dotenv()
 
-# ---------- Logging ----------
+# -----------------------
+# Logging
+# -----------------------
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
@@ -30,7 +33,9 @@ logger = logging.getLogger(__name__)
 
 mcp = FastMCP("URLscan MCP", json_response=True)
 
-# ---------- API_KEY Loading ----------
+# -----------------------
+# API_KEY Loading
+# -----------------------
 
 BASE_URL = "https://urlscan.io/api/v1"
 API_KEY = os.getenv("URLSCAN_API_KEY")
@@ -39,7 +44,9 @@ if not API_KEY:
     logging.error("Missing URLSCAN_API_KEY environment variable")
     raise RuntimeError("Missing URLSCAN_API_KEY")
 
-# ---------- Helper Request Functions ----------
+# -----------------------
+# Helper Request Functions
+# -----------------------
 
 # Helper function to make requests to VirusTotal API
 async def make_get_request(url: str) -> dict[str, Any]:
@@ -183,7 +190,10 @@ async def make_post_request_form(url: str, form: dict[str, Any]) -> dict[str, An
                 "data": None,
                 "error": str(e),
             }
-# ---------- Tools ----------
+# -----------------------
+# Tools
+# -----------------------
+
 # Implemention of the APIs endpoints as tools
 
 # Generic
@@ -228,6 +238,10 @@ async def Scan(url : str, visibility : str = "public", country : str | None = No
     if validate.is_valid_url(url):
         logging.error("Invalid URL")
         raise InvalidURLException("Invalid URL")
+
+    if visibility not in ["public", "unlisted", "private"]:
+        logging.error("Invalid visibility")
+        raise InvalidVisibilityException("Invalid visibility")
 
     # Request Body - Test - is it ok with empty parameters ?
     body = {
@@ -324,7 +338,7 @@ async def Available_User_Agents() -> dict[str, Any] | None :
 
 # Search
 @mcp.tool()
-async def Search(query : str, size : int | None = None, search_after : int | None = None, datasource : str | None = None) -> dict[str, Any] | None :
+async def Search(query : str, size : int | None = None, search_after : str | None = None, datasource : str | None = None) -> dict[str, Any] | None :
     """
     The Search API is used to find historical scans performed on the platform.
     """
@@ -374,6 +388,14 @@ async def Non_Blocking_Trigger_Live_Scan(scannerid : str, task : dict[str, Any],
     """
     Task a URL to be scanned. The HTTP request will return with the scan UUID immediately and then it is your responsibility to poll the result resource type until the scan has finished.    
     """
+    if validate.is_valid_url(task["url"]):
+        logging.error("Invalid URL")
+        raise InvalidURLException("Invalid URL")
+
+    if task["visibility"] not in ["public", "unlisted", "private"]:
+        logging.error("Invalid visibility")
+        raise ValueError("Invalid visibility")
+
     payload = {
         "task": task,
         "scanner": scanner
@@ -393,6 +415,14 @@ async def Trigger_Live_Scan(scannerid : str, task : dict[str, Any], scanner : di
     """
     Task a URL to be scanned. The HTTP request will block until the scan has finished.
     """
+    if validate.is_valid_url(task["url"]):
+        logging.error("Invalid URL")
+        raise InvalidURLException("Invalid URL")
+        
+    if task["visibility"] not in ["public", "unlisted", "private"]:
+        logging.error("Invalid visibility")
+        raise ValueError("Invalid visibility")
+
     payload = {
         "task": task,
         "scanner": scanner
@@ -408,7 +438,7 @@ async def Trigger_Live_Scan(scannerid : str, task : dict[str, Any], scanner : di
     return data
 
 @mcp.tool()
-async def Live_Scan_Get_Resource(scannerid : str, resourceType : str, resourceId : str) -> dict[str, Any] | None :
+async def Live_Scan_Get_Res ource(scannerid : str, resourceType : str, resourceId : str) -> dict[str, Any] | None :
     """
     Using the Scan ID received from the Submission API, you can use the Result API to poll for the scan.
     """
@@ -673,6 +703,7 @@ async def Saved_Search_Search_Results(searchId : str) -> dict[str, Any] | None :
 
 
 # Hostnames
+
 @mcp.tool()
 async def Hostnames_History(hostname : str, limit : int = 1000, pageState : str | None = None) -> dict[str, Any] | None :
     """
@@ -728,7 +759,7 @@ async def Brands() -> dict[str, Any] | None :
 
 # file
 @mcp.tool()
-async def Download_a_File(fileHash : str, password : str = "urlscan!", filename : str = "$fileHash.zip") -> dict[str, Any] | None :
+async def Download_a_File(fileHash : str, password : str | None = "urlscan!", filename : str | None = "$fileHash.zip") -> dict[str, Any] | None :
     """
     Download a file.
     """
@@ -742,6 +773,10 @@ async def Download_a_File(fileHash : str, password : str = "urlscan!", filename 
         "password": password,
         "filename": filename,
     }
+
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
+    
     data = await make_get_request_with_params(url, params)
 
     if data["error"]:

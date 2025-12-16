@@ -160,3 +160,13 @@ def is_valid_date(date_str: str) -> bool:
             
     logger.error(f"Invalid date format: {date_str}")
     return False
+
+# validate ASN
+def is_valid_asn(asn: str) -> bool:
+    logger.info(f"Validating ASN: {asn}")
+    try:
+        ipaddress.ip_network(asn, strict=False)
+        return True
+    except ValueError:
+        logger.error(f"Invalid ASN: {asn}")
+        return False

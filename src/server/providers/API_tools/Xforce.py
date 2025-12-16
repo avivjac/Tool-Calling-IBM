@@ -18,11 +18,14 @@ class InvalidURLException(Exception):
 
 load_dotenv()
 
-# ---------- Logging ----------
+# ------------------------
+# Logging
+# ------------------------
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
-    filename="URLscan_log.log",
+    filename="Xforce_log.log",
     filemode="a"
 )
 
@@ -30,16 +33,21 @@ logger = logging.getLogger(__name__)
 
 mcp = FastMCP("Xforce MCP", json_response=True)
 
-# ---------- API_KEY Loading ----------
+# ------------------------
+# API_KEY Loading
+# ------------------------
 
 BASE_URL = "https://api.xforce.ibmcloud.com"
 API_KEY = os.getenv("XFORCE_API_KEY")
+API_PASSWORD = os.getenv("XFORCE_API_PASSWORD")
 
 if not API_KEY:
     logging.error("Missing XFORCE_API_KEY environment variable")
     raise RuntimeError("Missing XFORCE_API_KEY")
 
-# ---------- Helper Request Functions ----------
+# ------------------------
+# Helper Request Functions
+# ------------------------
 
 # Helper function to make requests to Xforce API
 async def make_get_request(url: str) -> dict[str, Any]:
@@ -234,9 +242,13 @@ async def make_post_request_form(url: str, form: dict[str, Any]) -> dict[str, An
                 "data": None,
                 "error": str(e),
             }
-# ---------- Tools ----------
-# Implemention of the APIs endpoints as tools
 
+
+# ------------------------
+# Tools
+# ------------------------
+
+# Implemention of the APIs endpoints as tools
 
 # Collections
 
@@ -300,6 +312,10 @@ async def Get_public_Collections_using_pagination(limit : int | None = None, ski
         "limit": limit,
         "skip": skip,
     }
+
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
+    
     data = await make_get_request_with_params(url, params)
 
     if data["error"]:
@@ -349,7 +365,7 @@ async def Search_public_Collections(query : str) -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/casefiles/public/fulltext"
     params = {
-        "query": query,
+        "q": query,
     }
     data = await make_get_request_with_params(url, params)
 
@@ -385,6 +401,10 @@ async def Get_Attachments(casefileid : str, limit : int | None = None, skip : in
         "limit": limit,
         "skip": skip,
     }
+    
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
+    
     data = await make_get_request_with_params(url, params)
 
     if data["error"]:
@@ -430,8 +450,14 @@ async def Get_file_attachment(casefileid : str, attachmentid : str, filename : s
 async def get_DNS_records(input : str) -> dict[str, Any] | None :
     """
     Returns live and passive DNS records.
+    input - ip/domain/url
     """
     url = f"{BASE_URL}/resolve/{input}"   
+
+    if not validate.is_valid_ip(input) and not validate.is_valid_domain(input) and not validate.is_valid_url(input):
+        logging.error("Invalid input")
+        raise ValueError("Invalid input")
+
     data = await make_get_request(url)
 
     if data["error"]:
@@ -448,13 +474,23 @@ async def Get_early_warning_feed(startDate : str | None = None, endDate : str | 
     """
     Returns early warning data.
     """
+
+    if not validate.is_valid_date(startDate) and not validate.is_valid_date(endDate):
+        logging.error("Invalid date")
+        raise ValueError("Invalid date")
+    
     url = f"{BASE_URL}/url/host/early_warning"   
+
     params = {
         "startDate": startDate,
         "endDate": endDate,
         "limit": limit,
         "skip": skip,
     }
+
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
+
     data = await make_get_request_with_params(url, params)
 
     if data["error"]:
@@ -490,7 +526,7 @@ async def Search_App_Profiles(query : str) -> dict[str, Any] | None :
     url = f"{BASE_URL}/app/fulltext"
 
     params = {
-        "query": query,
+        "q": query,
     }
 
     data = await make_get_request_with_params(url, params)
@@ -520,15 +556,31 @@ async def Get_App_Profile_by_Name(appName : str) -> dict[str, Any] | None :
 # IP Reputation							
 
 @mcp.tool()
-async def Get_IPs_by_Category(category : str) -> dict[str, Any] | None :
+async def Get_IPs_by_Category(category : str, startDate : str, endDate : str, descanding : str, limit : int, skip : int) -> dict[str, Any] | None :
     """
     Return a list of IPs according to the category and date range.
     """
     url = f"{BASE_URL}/ipr"
 
+    if not validate.is_valid_date(startDate) and not validate.is_valid_date(endDate):
+        logging.error("Invalid date")
+        raise ValueError("Invalid date")
+
+    if not descanding in ["true", "false"]:
+        logging.error("Invalid descanding")
+        raise ValueError("Invalid descanding")
+    
     params = {
         "category": category,
+        "startDate": startDate,
+        "endDate": endDate,
+        "descanding": descanding,
+        "limit": limit,
+        "skip": skip,
     }
+
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
 
     data = await make_get_request_with_params(url, params)
 
@@ -544,6 +596,9 @@ async def Get_IP_Report(ip : str) -> dict[str, Any] | None :
     """
     Returns the IP report for the entered IP.
     """
+    if not validate.is_valid_ip(ip):
+        logging.error("Invalid IP")
+        raise ValueError("Invalid IP")
 
     url = f"{BASE_URL}/ipr/{ip}"   
     data = await make_get_request(url)
@@ -560,6 +615,10 @@ async def Get_IP_Reputation(ip : str) -> dict[str, Any] | None :
     """
     Returns a specific IP reputation.
     """
+    if not validate.is_valid_ip(ip):
+        logging.error("Invalid IP")
+        raise ValueError("Invalid IP")
+    
     url = f"{BASE_URL}/ipr/history/{ip}"   
     data = await make_get_request(url)
 
@@ -575,6 +634,10 @@ async def Get_Malware_for_IP(ip : str) -> dict[str, Any] | None :
     """
     Returns the malware for a specific IP.
     """
+    if not validate.is_valid_ip(ip):
+        logging.error("Invalid IP")
+        raise ValueError("Invalid IP")
+    
     url = f"{BASE_URL}/ipr/history/{ip}"   
     data = await make_get_request(url)
 
@@ -590,6 +653,10 @@ async def Get_networks_for_ASN(asn : str) -> dict[str, Any] | None :
     """
     Returns the networks for a specific ASN.
     """
+    if not validate.is_valid_asn(asn):
+        logging.error("Invalid ASN")
+        raise ValueError("Invalid ASN")
+    
     url = f"{BASE_URL}/ipr/asn/{asn}"   
     data = await make_get_request(url)
 
@@ -612,6 +679,9 @@ async def Get_IP_Reputation_updates(category : str, pull_id : int | None = None)
         "category": category,
         "pull_id": pull_id,
     }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
 
     data = await make_get_request_with_params(url, query)
 
@@ -690,6 +760,7 @@ async def Wildcard_search_malware_family(family : str) -> dict[str, Any] | None 
 async def Get_PAM_signature(input : str) -> dict[str, Any] | None :
     """
     Returns the PAM signature for a specific signature.
+    input - pamid \ pam name
     """
     url = f"{BASE_URL}/signatures/{input}"   
     data = await make_get_request(url)
@@ -707,9 +778,14 @@ async def Search_Signatures(query : str) -> dict[str, Any] | None :
     Returns the signature for a specific signature.
     """
     url = f"{BASE_URL}/signatures/fulltext" 
+
     params = {
-        "query": query,
+        "q": query,
     }
+
+    # Remove None values from params
+    params = {k: v for k, v in params.items() if v is not None}
+    
     data = await make_get_request_with_params(url, params)
 
     if data["error"]:
@@ -767,7 +843,7 @@ async def Get_an_object_in_STIX_format(stixversion : str, object : str, type : s
     return data
 
 @mcp.tool()
-async def Get_botnets_information_in_STIX_format(fullReport : bool) -> dict[str, Any] | None :
+async def Get_botnets_information_in_STIX_format(fullReport : bool | None = None) -> dict[str, Any] | None :
     """
     Returns the signature for a specific signature.
     """
@@ -776,6 +852,9 @@ async def Get_botnets_information_in_STIX_format(fullReport : bool) -> dict[str,
     query = {
         "fullReport": fullReport,
     }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
 
     data = await make_get_request_with_params(url, query)
 
@@ -810,7 +889,7 @@ async def Tag_Search(query : str) -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/tags/search"   
     params = {
-        "query": query,
+        "q": query,
     }
 
     data = await make_get_request_with_params(url, params)
@@ -917,12 +996,19 @@ async def Get_Objects_by_Collection_ID(collection_id : str, added_after : str | 
     """
     Returns the signature for a specific signature.
     """
+    if not validate.is_valid_date(added_after) and not validate.is_valid_date(added_before):
+        logging.error("Invalid date")
+        raise ValueError("Invalid date")
+    
     url = f"{BASE_URL}/taxii2/collections/{collection_id}/objects" 
 
     query = {
         "added_after": added_after,
         "added_before": added_before,
     }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
 
     if UserAgent :
         headers = {
@@ -999,6 +1085,9 @@ async def Get_manifest_by_collectionID(collectionID : str, added_after : str | N
         "added_before": added_before,
     }
 
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
+
     if UserAgent :
         headers = {
             "User-Agent": UserAgent,
@@ -1035,6 +1124,9 @@ async def Get_URLs_by_Category(category : str, startDate : str | None = None, en
         "limit": limit,
         "skip": skip,
     }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
 
     data = await make_get_request_with_params(url, query)
 
@@ -1118,6 +1210,9 @@ async def Get_URL_Updates(category : str, pull_id : int | None = None) -> dict[s
         "pull_id": pull_id,
     }
 
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
+
     data = await make_get_request_with_params(url, query)
 
     if data["error"]:
@@ -1145,9 +1240,637 @@ async def Get_URL_category_list() -> dict[str, Any] | None :
 
 # Vulnerabilities
 
+@mcp.tool()
+async def Get_Recent_Vulnerabilities(startDate : str | None = None, endDate : str | None = None, descending : str | None = None, limit : int | None = None, skip : int | None = None) -> dict[str, Any] | None :
+    """
+    Returns the recent vulnerabilities.
+    """
+
+    url = f"{BASE_URL}/vulnerabilities/"
+
+    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
+        logging.error("Invalid date format")
+        raise ValueError("Invalid date format")
+
+    if limit is not None and not isinstance(limit, int) :
+        logging.error("Invalid limit format")
+        raise ValueError("Invalid limit format")
+
+    if skip is not None and not isinstance(skip, int) :
+        logging.error("Invalid skip format")
+        raise ValueError("Invalid skip format")
+
+    if descending is not "true" and descending is not "false" and descending is not None :
+        logging.error("Invalid descending format")
+        raise ValueError("Invalid descending format")
+
+    query = {
+        "startDate": startDate,
+        "endDate": endDate,
+        "descending": descending,
+        "limit": limit,
+        "skip": skip,
+    }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
+
+    data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_updated_Vulnerabilities(startDate : str | None = None, endDate : str | None = None, descending : str | None = None, limit : int | None = None, skip : int | None = None) -> dict[str, Any] | None :
+    """
+    Returns a list of vulnerabilities that were updated
+    """
+    url = f"{BASE_URL}/vulnerabilities/change"
+
+    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
+        logging.error("Invalid date format")
+        raise ValueError("Invalid date format")
+
+    if limit is not None and not isinstance(limit, int) :
+        logging.error("Invalid limit format")
+        raise ValueError("Invalid limit format")
+
+    if skip is not None and not isinstance(skip, int) :
+        logging.error("Invalid skip format")
+        raise ValueError("Invalid skip format")
+
+    if descending is not "true" and descending is not "false" and descending is not None :
+        logging.error("Invalid descending format")
+        raise ValueError("Invalid descending format")
+
+    query = {
+        "startDate": startDate,
+        "endDate": endDate,
+        "descending": descending,
+        "limit": limit,
+        "skip": skip,
+    }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
+
+    data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Search_Vulnerabilities(q : str, startDate : str | None = None, endDate : str | None = None, bookmark : str | None = None) -> dict[str, Any] | None :
+    """
+    Returns a list of vulnerabilities that match the query
+    """
+    url = f"{BASE_URL}/vulnerabilities/fulltext"
+
+    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
+        logging.error("Invalid date format")
+        raise ValueError("Invalid date format")
+
+    query = {
+        "q": q,
+        "startDate": startDate,
+        "endDate": endDate,
+        "bookmark": bookmark,
+    }
+
+    # Remove None values from params
+    query = {k: v for k, v in query.items() if v is not None}
+
+    data = await make_get_request_with_params(url, query)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_by_XFID(xfid : str) -> dict[str, Any] | None :
+    """
+    Returns the vulnerability associated with the entered xfdbid.
+    """
+    url = f"{BASE_URL}/vulnerabilities/{xfid}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_by_STDCODE(stdcode : str) -> dict[str, Any] | None :
+    """
+    Returns the vulnerability associated with the entered stdcode.
+    """
+    url = f"{BASE_URL}/vulnerabilities/{stdcode}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_by_Microsoft_Security_Bulletein_ID(msid : str) -> dict[str, Any] | None :
+    """
+    Returns the vulnerability associated with the entered msbid.
+    """
+    url = f"{BASE_URL}/vulnerabilities/{msid}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+# WHOIS
+
+@mcp.tool()
+async def Get_WHOIS_Information(host : str) -> dict[str, Any] | None :
+    """
+    Returns the WHOIS information for the entered domain.
+    """
+    url = f"{BASE_URL}/whois/{host}"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
 
 
+# Protection Feed
 
+@mcp.tool()
+async def Anonymization_Services_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as anonymization services.
+    """
+    url = f"{BASE_URL}/xfti/anonsvcs/ipv4"
 
+    data = await make_get_request(url)
 
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
 
+    return data
+
+@mcp.tool()
+async def Anonymization_Services_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as anonymization services.
+    """
+    url = f"{BASE_URL}/xfti/anonsvcs/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Anonymization_Services_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as anonymization services.
+    """
+    url = f"{BASE_URL}/xfti/anonsvcs/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Botnet_CnC_Servers_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as botnet CnC servers.
+    """
+    url = f"{BASE_URL}/xfti/c2server/ipv4"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Botnet_CnC_Servers_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as botnet CnC servers.
+    """
+    url = f"{BASE_URL}/xfti/c2server/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Botnet_CnC_Servers_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as botnet CnC servers.
+    """
+    url = f"{BASE_URL}/xfti/c2server/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Bots_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as bots.
+    """
+    url = f"{BASE_URL}/xfti/bots/ipv4"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Bots_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as bots.
+    """
+    url = f"{BASE_URL}/xfti/bots/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Cryptocurrency_mining_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as cryptocurrency mining.
+    """
+    url = f"{BASE_URL}/xfti/cryptomining/ipv4"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Cryptocurrency_mining_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as cryptocurrency mining.
+    """
+    url = f"{BASE_URL}/xfti/cryptomining/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Cryptocurrency_mining_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as cryptocurrency mining.
+    """
+    url = f"{BASE_URL}/xfti/cryptomining/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Early_Warning_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as early warning.
+    """
+    url = f"{BASE_URL}/xfti/ew/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Malware_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as malware.
+    """
+    url = f"{BASE_URL}/xfti/mw/ipv4"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Malware_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as malware.
+    """
+    url = f"{BASE_URL}/xfti/mw/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Malware_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as malware.
+    """
+    url = f"{BASE_URL}/xfti/mw/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Phishing_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as phishing.
+    """
+    url = f"{BASE_URL}/xfti/phishing/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Scanning_IPs_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as scanning IPs.
+    """
+    url = f"{BASE_URL}/xfti/scanning/ipv4"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Scanning_IPs_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as scanning IPs.
+    """
+    url = f"{BASE_URL}/xfti/scanning/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data 
+
+@mcp.tool()
+async def Top_Activity_URL() -> dict[str, Any] | None :
+    """
+    Returns the top ten thousand URLs rated by activity as known by X-Force Exchange.
+    """
+    url = f"{BASE_URL}/xfti/topact/url/10k"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Benign_IPv4() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv4 addresses that are categorized as benign.
+    """
+    url = f"{BASE_URL}/xfti/benign/ipv4"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Benign_IPv6() -> dict[str, Any] | None :
+    """
+    Returns a list of IPv6 addresses that are categorized as benign.
+    """
+    url = f"{BASE_URL}/xfti/benign/ipv6"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Benign_URL() -> dict[str, Any] | None :
+    """
+    Returns a list of URLs that are categorized as benign.
+    """
+    url = f"{BASE_URL}/xfti/benign/url"
+
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+# Protection Feed TAXII2						
+
+@mcp.tool()
+async def Get_API_Root_information(UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    This is the TAXII 2 root information endpoint.
+    """
+    url = f"{BASE_URL}/xfti/taxii2"
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Get_Collections(UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    This is the TAXII 2 collections endpoint.
+    """
+    url = f"{BASE_URL}/xfti/taxii2/collections"
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Collection_metadata(CollectionID : str, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    This is the TAXII 2 collection metadata endpoint.
+    """
+    url = f"{BASE_URL}/xfti/taxii2/collections/{CollectionID}"    
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
+async def Collection_objects(CollectionID : str, UserAgent : str | None = None) -> dict[str, Any] | None :
+    """
+    This is the TAXII 2 collection objects endpoint.
+    """
+    url = f"{BASE_URL}/xfti/taxii2/collections/{CollectionID}/objects"    
+
+    if UserAgent :
+        headers = {
+            "User-Agent": UserAgent,
+        }
+        data = await make_get_request_with_headers(url, headers)
+    else :
+        data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+def main():
+    # Initialize and run the server
+    mcp.run(transport='stdio')
+
+if __name__ == "__main__":
+    main()
