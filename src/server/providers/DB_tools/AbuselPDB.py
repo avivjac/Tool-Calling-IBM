@@ -45,7 +45,6 @@ if not API_KEY:
 # Helper Request Functions
 # ------------------------
 
-# Helper function to make requests to Xforce API
 async def make_get_request(url: str) -> dict[str, Any]:
     async with httpx.AsyncClient() as client:
         try:

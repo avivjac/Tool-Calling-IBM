@@ -65,7 +65,7 @@ async def make_get_request(url: str) -> dict[str, Any]:
             return {
                 "data": None,
                 "error": str(e),
-            }
+            }ּ
         except httpx.RequestError as e:
             logging.error(f"Request error while requesting {url!r}: {e}")
             return {
@@ -123,7 +123,7 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
 
 
 
-    
+
     params = {
         "cpeName": cpeName,
         "cveID": cveID,
@@ -158,6 +158,9 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
         "versionStartType": versionStartType,
         "virtualMatchString": virtualMatchString,
     }
+
+    # remove None values
+    params = {k: v for k, v in params.items() if v is not None}
 
     data = await make_get_request_with_params(url, params)
     
