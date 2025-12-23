@@ -5,6 +5,8 @@ from mcp.server.fastmcp import FastMCP
 from typing import Any
 import logging
 import base64
+import re
+import binascii
 from dotenv import load_dotenv
 load_dotenv() 
 
@@ -182,15 +184,14 @@ async def Get_an_IP_address_report(IP : str) -> dict[str, Any] | None :
     Get an IP address report from VirusTotal.
     """
 
-    if not is_valid_ip(IP):
+    if not validate.is_valid_ip(IP):
         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-
     logging.info("return: {data}")
     return data
 
@@ -202,15 +203,14 @@ async def Request_an_IP_address_rescan(IP : str) -> dict[str, Any] | None :
     Request an IP address rescan from VirusTotal.
     example: IP=' """
 
-    if not is_valid_ip(IP):
+    if not validate.is_valid_ip(IP):
         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/analyse"
-    data = await make_post_request(url)
+    data = await request.make_post_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    
     logging.info("return: {data}")
     return data
 
@@ -221,7 +221,7 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
     Get comments on an IP address from VirusTotal.
     example: IP=' """
 
-    if not is_valid_ip(IP):
+    if not validate.is_valid_ip(IP):
         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     params = {"limit": limit}
@@ -230,21 +230,13 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/ip_addresses/{IP}/comments"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
 
-
-
-    data = await make_post_request_with_params(url, payload)
-
-    if data["error"]:
-        logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
-    return data
 
 
 @mcp.tool()
@@ -254,7 +246,7 @@ async def Get_objects_related_to_an_IP_address(IP : str, relationship : str, lim
     example: IP=' '
     """
 
-    if not is_valid_ip(IP):
+    if not validate.is_valid_ip(IP):
         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     params = {"limit": limit}
@@ -264,12 +256,13 @@ async def Get_objects_related_to_an_IP_address(IP : str, relationship : str, lim
 
 
     url = f"{BASE_URL}/ip_addresses/{IP}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
     logging.info("return: {data}")
     return data
+
 
 @mcp.tool()
 async def Get_object_descriptors_related_to_an_IP_address(IP : str, relationship : str) -> dict[str, Any] | None :
@@ -277,11 +270,11 @@ async def Get_object_descriptors_related_to_an_IP_address(IP : str, relationship
     Get object descriptors related to an IP address from VirusTotal.
     example: IP=' '
     """
-    if not is_valid_ip(IP):
+    if not validate.is_valid_ip(IP):
         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/relationships/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
@@ -295,11 +288,11 @@ async def Get_votes_on_an_IP_address(IP : str) -> dict[str, Any] | None :
     Get votes on an IP address from VirusTotal.
     example: IP=' '
     """
-    if not is_valid_ip(IP):
+    if not validate.is_valid_ip(IP):
         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
 
     url = f"{BASE_URL}/ip_addresses/{IP}/votes"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
@@ -318,11 +311,11 @@ async def Get_a_domain_report(domain: str) -> dict[str, Any] | None:
     Get a domain report from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
 
     url = f"{BASE_URL}/domains/{domain}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -336,11 +329,11 @@ async def Request_an_domain_rescan(domain: str) -> dict[str, Any] | None:
     Request a domain rescan from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
     
     url = f"{BASE_URL}/domains/{domain}/analyse"
-    data = await make_post_request(url)
+    data = await request.make_post_request(url)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -354,7 +347,7 @@ async def Get_comments_on_a_domain(domain: str, limit: int | None = 10, cursor: 
     Get comments on a domain from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
     
     params = {"limit": limit}
@@ -363,7 +356,7 @@ async def Get_comments_on_a_domain(domain: str, limit: int | None = 10, cursor: 
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/domains/{domain}/comments"
-    data = await make_get_request(url, params)
+    data = await request.make_get_request(url, params)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -378,7 +371,7 @@ async def Get_objects_related_to_a_domain(domain: str, relationship: str, limit:
     Get objects related to a domain from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
     
     params = {"limit": limit}
@@ -387,7 +380,7 @@ async def Get_objects_related_to_a_domain(domain: str, relationship: str, limit:
         params["cursor"] = cursor
     
     url = f"{BASE_URL}/domains/{domain}/{relationship}"
-    data = await make_get_request(url, params)
+    data = await request.make_get_request(url, params)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -401,7 +394,7 @@ async def Get_object_descriptors_related_to_a_domain(domain: str, relationship: 
     Get object descriptors related to a domain from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
     
     params = {"limit": limit}
@@ -410,7 +403,7 @@ async def Get_object_descriptors_related_to_a_domain(domain: str, relationship: 
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/domains/{domain}/relationships/{relationship}"
-    data = await make_get_request(url, params)
+    data = await request.make_get_request(url, params)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -424,11 +417,11 @@ async def Get_a_DNS_resolution_object(domain: str) -> dict[str, Any] | None:
     Get a DNS resolution object from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
     
     url = f"{BASE_URL}/resolutions/{domain}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -442,11 +435,11 @@ async def Get_votes_on_a_domain(domain: str) -> dict[str, Any] | None:
     Get votes on a domain from VirusTotal.
     example: domain='example.com'
     """
-    if not is_valid_domain(domain):
+    if not validate.is_valid_domain(domain):
         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
     
     url = f"{BASE_URL}/domains/{domain}/votes"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
@@ -476,7 +469,7 @@ async def Upload_a_file(file_path: str, password: str | None = None) -> dict[str
     if password:
         body["data"]["attributes"]["password"] = password
 
-    data = await make_post_request_with_params(url, body)
+    data = await request.make_post_request_with_params(url, body)
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
     logging.info("return: {data}")
@@ -490,7 +483,7 @@ async def Get_a_URL_for_uploading_large_files() -> dict[str, Any] | None:
     Get a temporary upload URL for large files (>32MB).
     """
     url = f"{BASE_URL}/files/upload_url"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -503,10 +496,9 @@ async def Get_a_URL_for_uploading_large_files() -> dict[str, Any] | None:
 async def Get_a_file_report(file_id: str) -> dict[str, Any] | None:
     """
     Get a file report from VirusTotal.
-    example: file_id='44d88612fea8a8f36de82e1278abb02f'
     """
     url = f"{BASE_URL}/files/{file_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -522,7 +514,7 @@ async def Request_a_file_rescan(file_id: str) -> dict[str, Any] | None:
     Request a rescan (analysis) of a file on VirusTotal.
     """
     url = f"{BASE_URL}/files/{file_id}/analyse"
-    data = await make_post_request(url)
+    data = await request.make_post_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -542,7 +534,7 @@ async def Get_comments_on_a_file(file_id: str, limit: int | None = 10, cursor: s
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/files/{file_id}/comments"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -563,7 +555,7 @@ async def Get_objects_related_to_a_file(file_id: str, relationship: str, limit: 
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/files/{file_id}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -578,7 +570,7 @@ async def Get_object_descriptors_related_to_a_file(file_id: str, relationship: s
     Get object descriptors related to a file.
     """
     url = f"{BASE_URL}/files/{file_id}/relationships/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -593,7 +585,7 @@ async def Get_a_crowdsourced_Sigma_rule_object(rule_id: str) -> dict[str, Any] |
     Get a crowdsourced Sigma rule object.
     """
     url = f"{BASE_URL}/sigma_rules/{rule_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -607,7 +599,7 @@ async def Get_a_crowdsourced_YARA_ruleset(ruleset_id: str) -> dict[str, Any] | N
     Get a crowdsourced YARA ruleset.
     """
     url = f"{BASE_URL}/yara_rulesets/{ruleset_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -627,7 +619,7 @@ async def Get_votes_on_a_file(file_id: str, limit: int | None = 10, cursor: str 
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/files/{file_id}/votes"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
@@ -644,7 +636,7 @@ async def Get_a_summary_of_all_behavior_reports_for_a_file(file_id: str) -> dict
     Get a summary of all behavior reports for a file.
     """
     url = f"{BASE_URL}/files/{file_id}/behaviour_summary"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -659,7 +651,7 @@ async def Get_a_summary_of_all_MITRE_ATTACK_techniques_observed_in_a_file(file_i
     Get MITRE ATT&CK techniques summary observed in a file.
     """
     url = f"{BASE_URL}/files/{file_id}/behaviour_mitre_trees"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -673,7 +665,7 @@ async def Get_all_behavior_reports_for_a_file(file_id: str) -> dict[str, Any] | 
     Get all behaviour reports for a file.
     """
     url = f"{BASE_URL}/files/{file_id}/behaviours"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -687,7 +679,7 @@ async def Get_a_file_behaviour_report_from_a_sandbox(sandbox_id: str) -> dict[st
     Get a file behaviour report from a specific sandbox.
     """
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -705,7 +697,7 @@ async def Get_objects_related_to_a_behaviour_report(sandbox_id: str, relationshi
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -724,7 +716,7 @@ async def Get_object_descriptors_related_to_a_behaviour_report(sandbox_id: str, 
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -738,7 +730,7 @@ async def Get_a_detailed_HTML_behaviour_report(sandbox_id: str) -> dict[str, Any
     Get a detailed HTML behaviour report for a sandbox behaviour ID.
     """
     url = f"{BASE_URL}/file_behaviours/{sandbox_id}/html"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
@@ -757,13 +749,13 @@ async def Scan_URL(url: str) -> dict[str, Any] | None:
     """
     Scan / analyze a URL using VirusTotal.
     """
-    if not is_valid_url(url):
+    if not validate.is_valid_url(url):
         raise InvalidURLError(f"The URL '{url}' is not valid.")
 
     endpoint = f"{BASE_URL}/urls"
     form_data = {"url": url}
 
-    data = await make_post_request_form(endpoint, form_data)
+    data = await request.make_post_request_form(endpoint, form_data)
 
     if data["error"]:
         logging.error(f"Error in VT URL scan: {data['error']}")
@@ -777,8 +769,11 @@ async def Get_a_URL_report(url_id: str) -> dict[str, Any] | None:
     Get a URL analysis report.
     Example url_id: a hash returned from Scan_URL
     """
+    if not validate.is_valid_url_identifier(url_id):
+        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+
     url = f"{BASE_URL}/urls/{url_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT URL report: {data['error']}")
@@ -791,8 +786,11 @@ async def Request_a_URL_rescan(url_id: str) -> dict[str, Any] | None:
     """
     Request a rescan (re-analysis) for a URL.
     """
+    if not validate.is_valid_url_identifier(url_id):
+        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+
     endpoint = f"{BASE_URL}/urls/{url_id}/analyse"
-    data = await make_post_request(endpoint)
+    data = await request.make_post_request(endpoint)
 
     if data["error"]:
         logging.error(f"Error in VT URL rescan: {data['error']}")
@@ -805,12 +803,15 @@ async def Get_comments_on_a_URL(url_id: str, limit: int | None = 10, cursor: str
     """
     Get comments for a URL.
     """
+    if not validate.is_valid_url_identifier(url_id):
+        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/urls/{url_id}/comments"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error fetching VT URL comments: {data['error']}")
@@ -824,12 +825,15 @@ async def Get_objects_related_to_a_URL(url_id: str, relationship: str, limit: in
     """
     Get objects related to a URL.
     """
+    if not validate.is_valid_url_identifier(url_id):
+        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/urls/{url_id}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error fetching related VT URL objects: {data['error']}")
@@ -842,12 +846,15 @@ async def Get_object_descriptors_related_to_a_URL(url_id: str, relationship: str
     """
     Get object descriptors related to a URL.
     """
+    if not validate.is_valid_url_identifier(url_id):
+        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/urls/{url_id}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error fetching VT URL relationship descriptors: {data['error']}")
@@ -860,12 +867,15 @@ async def Get_votes_on_a_URL(url_id: str, limit: int | None = 10, cursor: str | 
     """
     Get votes for a URL.
     """
+    if not validate.is_valid_url_identifier(url_id):
+        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+        
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/urls/{url_id}/votes"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error fetching VT URL votes: {data['error']}")
@@ -886,7 +896,7 @@ async def Get_latest_comments(limit: int | None = 10, filter: str | None = None,
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/comments"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Comments report: {data['error']}")
     logging.info(f"return: {data}")
@@ -902,9 +912,9 @@ async def Get_a_comment_object(commentID: str, relationships: str | None = None)
     
     if relationships:
         params = {"relationships": relationships}
-        data = await make_get_request_with_params(url, params)
+        data = await request.make_get_request_with_params(url, params)
     else:
-        data = await make_get_request(url)
+        data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Comments report: {data['error']}")
     logging.info(f"return: {data}")
@@ -917,7 +927,7 @@ async def Get_objects_related_to_a_comment(commentID: str, relationship: str) ->
     Get objects related to a comment.
     """
     url = f"{BASE_URL}/comments/{commentID}/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Comments report: {data['error']}")
@@ -937,7 +947,7 @@ async def Get_object_descriptors_related_to_a_comment(commentID: str, relationsh
         params["cursor"] = cursor
 
     url = f"{BASE_URL}/comments/{commentID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Comments report: {data['error']}")
@@ -953,7 +963,7 @@ async def Get_a_URL_file_analysis(ID: str) -> dict[str, Any] | None:
     Get a URL / file analysis.
     """
     url = f"{BASE_URL}/analyses/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Analyses report: {data['error']}")
     logging.info(f"return: {data}")
@@ -966,7 +976,7 @@ async def Get_objects_related_to_an_analysis(ID: str, relationship: str) -> dict
     Get objects related to an analysis.
     """
     url = f"{BASE_URL}/analyses/{ID}/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Analyses report: {data['error']}")
     logging.info(f"return: {data}")
@@ -979,7 +989,7 @@ async def Get_object_descriptors_related_to_an_analysis(ID: str, relationship: s
     Get object descriptors related to an analysis.
     """
     url = f"{BASE_URL}/analyses/{ID}/relationships/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Analyses report: {data['error']}")
     logging.info(f"return: {data}")
@@ -992,7 +1002,7 @@ async def Get_a_submission_object(ID: str) -> dict[str, Any] | None:
     Get a submission object.
     """
     url = f"{BASE_URL}/submission/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Submission report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1005,7 +1015,7 @@ async def Get_an_operation_object(ID: str) -> dict[str, Any] | None:
     Get an operation object.
     """
     url = f"{BASE_URL}/operations/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Operation report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1020,7 +1030,7 @@ async def Get_an_attack_tactic_object(ID: str) -> dict[str, Any] | None:
     Get an attack tactic object.
     """
     url = f"{BASE_URL}/attack_tactics/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Attack Tactic report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1036,7 +1046,7 @@ async def Get_objects_related_to_an_attack_tactic(ID: str, relationship: str, li
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/attack_tactics/{ID}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Attack Tactic report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1052,7 +1062,7 @@ async def Get_object_descriptors_related_to_an_attack_tactic(ID: str, relationsh
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/attack_tactics/{ID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Attack Tactic report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1066,7 +1076,7 @@ async def Get_an_attack_technique_object(ID: str) -> dict[str, Any] | None:
     Get an attack technique object.
     """
     url = f"{BASE_URL}/attack_techniques/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Attack Technique report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1082,7 +1092,7 @@ async def Get_objects_related_to_an_attack_technique(ID: str, relationship: str,
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/attack_techniques/{ID}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Attack Technique report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1098,7 +1108,7 @@ async def Get_object_descriptors_related_to_an_attack_technique(ID: str, relatio
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/attack_techniques/{ID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Attack Technique report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1113,7 +1123,7 @@ async def Get_a_list_of_popular_threat_categories() -> dict[str, Any] | None:
     Get a list of popular threat categories.
     """
     url = f"{BASE_URL}/popular_threat_categories"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Popular Threat Categories report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1139,7 +1149,7 @@ async def Analyse_code_blocks_with_Code_Insights(code: str, code_type: str = "de
         }
     }
     
-    data = await make_post_request_with_params(url, payload)
+    data = await request.make_post_request_with_params(url, payload)
     
     if data["error"]:
         logging.error(f"Error in VT Code Insights: {data['error']}")
@@ -1155,7 +1165,7 @@ async def Search_for_files_URLs_domains_IPs_and_comments(query: str) -> dict[str
     """
     url = f"{BASE_URL}/search"
     params = {"query": query}
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Search: {data['error']}")
     logging.info(f"return: {data}")
@@ -1168,7 +1178,7 @@ async def Get_file_content_search_snippets(snippet: str) -> dict[str, Any] | Non
     Get file content search snippets.
     """
     url = f"{BASE_URL}/intelligence/search/snippets/{snippet}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Intelligence Search Snippets: {data['error']}")
     logging.info(f"return: {data}")
@@ -1181,7 +1191,7 @@ async def Get_VirusTotal_metadata() -> dict[str, Any] | None:
     Get VirusTotal metadata.
     """
     url = f"{BASE_URL}/metadata"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Metadata: {data['error']}")
     logging.info(f"return: {data}")
@@ -1200,7 +1210,7 @@ async def Create_a_new_collection(data: dict[str, Any]) -> dict[str, Any] | None
     # The API expects the body to be {"data": <collection object>}
     payload = {"data": data}
     
-    data = await make_post_request_with_params(url, payload)
+    data = await request.make_post_request_with_params(url, payload)
     if data["error"]:
         logging.error(f"Error in VT Create Collection: {data['error']}")
     logging.info(f"return: {data}")
@@ -1213,7 +1223,7 @@ async def Get_a_collection(ID: str) -> dict[str, Any] | None:
     Get a collection.
     """
     url = f"{BASE_URL}/collections/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Collection report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1229,7 +1239,7 @@ async def Get_comments_on_a_collection(ID: str, limit: int | None = 10, cursor: 
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/collections/{ID}/comments"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Collection Comments: {data['error']}")
     logging.info(f"return: {data}")
@@ -1245,7 +1255,7 @@ async def Get_objects_related_to_a_collection(ID: str, relationship: str, limit:
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/collections/{ID}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Collection Objects: {data['error']}")
     logging.info(f"return: {data}")
@@ -1261,7 +1271,7 @@ async def Get_object_descriptors_related_to_a_collection(ID: str, relationship: 
     if cursor:
         params["cursor"] = cursor
     url = f"{BASE_URL}/collections/{ID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     if data["error"]:
         logging.error(f"Error in VT Collection Object Descriptors: {data['error']}")
     logging.info(f"return: {data}")
@@ -1283,7 +1293,7 @@ async def Create_a_password_protected_ZIP_with_VirusTotal_files(hashes: list[str
         
     payload = {"data": data_content}
     
-    data = await make_post_request_with_params(url, payload)
+    data = await request.make_post_request_with_params(url, payload)
     
     if data["error"]:
         logging.error(f"Error in VT Create ZIP: {data['error']}")
@@ -1297,7 +1307,7 @@ async def Check_a_ZIP_file_s_status(ID: str) -> dict[str, Any] | None:
     Check a ZIP file's status.
     """
     url = f"{BASE_URL}/intelligence/zip_files/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT ZIP Status: {data['error']}")
@@ -1311,7 +1321,7 @@ async def Get_a_ZIP_file_s_download_url(ID: str) -> dict[str, Any] | None:
     Get a ZIP file's download URL.
     """
     url = f"{BASE_URL}/intelligence/zip_files/{ID}/download_url"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT ZIP Download URL: {data['error']}")
@@ -1325,7 +1335,7 @@ async def Download_a_ZIP_file(ID: str) -> dict[str, Any] | None:
     Download a ZIP file.
     """
     url = f"{BASE_URL}/intelligence/zip_files/{ID}/download"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT ZIP Download: {data['error']}")
@@ -1339,7 +1349,7 @@ async def Delete_a_ZIP_file(ID: str) -> dict[str, Any] | None:
     Delete a ZIP file.
     """
     url = f"{BASE_URL}/intelligence/zip_files/{ID}"
-    data = await make_delete_request(url)
+    data = await request.make_delete_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT ZIP Delete: {data['error']}")
@@ -1365,7 +1375,7 @@ async def List_Crowdsourced_YARA_Rules(limit: int | None = 10, filter: str | Non
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT YARA Rules List: {data['error']}")
@@ -1379,7 +1389,7 @@ async def Get_a_Crowdsourced_YARA_rule(ID: str) -> dict[str, Any] | None:
     Get a Crowdsourced YARA rule.
     """
     url = f"{BASE_URL}/yara_rules/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT YARA Rule: {data['error']}")
@@ -1393,7 +1403,7 @@ async def Get_objects_related_to_a_Crowdsourced_YARA_rule(ID: str, relationship:
     Get objects related to a Crowdsourced YARA rule.
     """
     url = f"{BASE_URL}/yara_rules/{ID}/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT YARA Rule Objects: {data['error']}")
@@ -1407,7 +1417,7 @@ async def Get_object_descriptors_related_to_a_Crowdsourced_YARA_rule(ID: str, re
     Get object descriptors related to a Crowdsourced YARA rule.
     """
     url = f"{BASE_URL}/yara_rules/{ID}/relationships/{relationship}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT YARA Rule Descriptors: {data['error']}")
@@ -1449,7 +1459,7 @@ async def Get_objects_from_the_IoC_Stream(limit: int | None = 10, descriptors_on
     if order:
         params["order"] = order
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT IoC Stream: {data['error']}")
@@ -1463,7 +1473,7 @@ async def Get_an_IoC_Stream_notification(ID: str) -> dict[str, Any] | None:
     Get an IoC Stream notification.
     """
     url = f"{BASE_URL}/ioc_stream_notifications/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT IoC Stream Notification: {data['error']}")
@@ -1494,7 +1504,7 @@ async def Search_graphs(limit: int | None = None, filter: str | None = None, cur
     if attributes:
         params["attributes"] = attributes
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Search Graphs: {data['error']}")
@@ -1510,7 +1520,7 @@ async def Create_a_graph(graph_content: dict[str, Any]) -> dict[str, Any] | None
     """
     url = f"{BASE_URL}/graphs"
     
-    data = await make_post_request_with_params(url, graph_content)
+    data = await request.make_post_request_with_params(url, graph_content)
     
     if data["error"]:
         logging.error(f"Error in VT Create Graph: {data['error']}")
@@ -1524,7 +1534,7 @@ async def Get_a_graph_object(ID: str) -> dict[str, Any] | None:
     Get a graph object.
     """
     url = f"{BASE_URL}/graphs/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Graph Object: {data['error']}")
@@ -1543,7 +1553,7 @@ async def Get_comments_on_a_graph(ID: str, limit: int | None = None, cursor: str
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/graphs/{ID}/comments"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Graph Comments: {data['error']}")
@@ -1563,7 +1573,7 @@ async def Get_objects_related_to_a_graph(ID: str, relationship: str, limit: int 
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/graphs/{ID}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Graph Related Objects: {data['error']}")
@@ -1583,7 +1593,7 @@ async def Get_object_descriptors_related_to_a_graph(ID: str, relationship: str, 
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/graphs/{ID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Graph Related Descriptors: {data['error']}")
@@ -1605,7 +1615,7 @@ async def Get_users_and_groups_that_can_view_a_graph(ID: str, limit: int | None 
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/graphs/{ID}/relationships/viewers"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Graph Viewers: {data['error']}")
@@ -1619,7 +1629,7 @@ async def Check_if_a_user_or_group_can_view_a_graph(ID: str, user_or_group_id: s
     Check if a user or group can view a graph.
     """
     url = f"{BASE_URL}/graphs/{ID}/relationships/viewers/{user_or_group_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Check Graph Viewer: {data['error']}")
@@ -1639,7 +1649,7 @@ async def Get_users_and_groups_that_can_edit_a_graph(ID: str, limit: int | None 
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/graphs/{ID}/relationships/editors"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Graph Editors: {data['error']}")
@@ -1653,7 +1663,7 @@ async def Check_if_a_user_or_group_can_edit_a_graph(ID: str, user_or_group_id: s
     Check if a user or group can edit a graph.
     """
     url = f"{BASE_URL}/graphs/{ID}/relationships/editors/{user_or_group_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Check Graph Editor: {data['error']}")
@@ -1678,7 +1688,7 @@ async def Create_a_password_protected_ZIP_with_VirusTotal_private_files(hashes: 
     if password:
         body["data"]["password"] = password
         
-    data = await make_post_request_with_params(url, body)
+    data = await request.make_post_request_with_params(url, body)
     
     if data["error"]:
         logging.error(f"Error in VT Create Private ZIP: {data['error']}")
@@ -1693,7 +1703,7 @@ async def Check_a_ZIP_file_s_status(ID: str) -> dict[str, Any] | None:
     The status attribute contains one of: starting, creating, finished, timeout, error-starting, error-creating.
     """
     url = f"{BASE_URL}/private/zip_files/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT ZIP Status: {data['error']}")
@@ -1708,7 +1718,7 @@ async def Get_a_ZIP_file_s_download_url(ID: str) -> dict[str, Any] | None:
     Returns a signed URL. The URL expires after 1 hour.
     """
     url = f"{BASE_URL}/private/zip_files/{ID}/download_url"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT ZIP Download URL: {data['error']}")
@@ -1723,7 +1733,7 @@ async def Download_a_ZIP_file(ID: str) -> dict[str, Any] | None:
     This endpoint redirects to the download URL.
     """
     url = f"{BASE_URL}/private/zip_files/{ID}/download"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Download ZIP: {data['error']}")
@@ -1740,7 +1750,7 @@ async def Get_a_user_object(ID: str) -> dict[str, Any] | None:
     ID can be User ID or API key.
     """
     url = f"{BASE_URL}/users/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Get User: {data['error']}")
@@ -1758,7 +1768,7 @@ async def Get_objects_related_to_a_user(ID: str, relationship: str, limit: int |
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/users/{ID}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT User Related Objects: {data['error']}")
@@ -1776,7 +1786,7 @@ async def Get_object_descriptors_related_to_a_user(ID: str, relationship: str, l
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/users/{ID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT User Related Descriptors: {data['error']}")
@@ -1792,7 +1802,7 @@ async def Get_a_group_object(ID: str) -> dict[str, Any] | None:
     Get a group object.
     """
     url = f"{BASE_URL}/groups/{ID}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Get Group: {data['error']}")
@@ -1806,7 +1816,7 @@ async def Get_administrators_for_a_group(ID: str) -> dict[str, Any] | None:
     Get administrators for a group.
     """
     url = f"{BASE_URL}/groups/{ID}/relationships/administrators"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Group Administrators: {data['error']}")
@@ -1820,7 +1830,7 @@ async def Check_if_a_user_is_a_group_admin(group_id: str, user_id: str) -> dict[
     Check if a user is a group admin.
     """
     url = f"{BASE_URL}/groups/{group_id}/relationships/administrators/{user_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Check Group Admin: {data['error']}")
@@ -1834,7 +1844,7 @@ async def Get_group_users(ID: str) -> dict[str, Any] | None:
     Get group users.
     """
     url = f"{BASE_URL}/groups/{ID}/relationships/users"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Group Users: {data['error']}")
@@ -1848,7 +1858,7 @@ async def Check_if_a_user_is_a_group_member(group_id: str, user_id: str) -> dict
     Check if a user is a group member.
     """
     url = f"{BASE_URL}/groups/{group_id}/relationships/users/{user_id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Check Group Member: {data['error']}")
@@ -1868,7 +1878,7 @@ async def Get_objects_related_to_a_group(ID: str, relationship: str, limit: int 
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/groups/{ID}/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Group Related Objects: {data['error']}")
@@ -1888,7 +1898,7 @@ async def Get_object_descriptors_related_to_a_group(ID: str, relationship: str, 
         params["cursor"] = cursor
         
     url = f"{BASE_URL}/groups/{ID}/relationships/{relationship}"
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Group Related Descriptors: {data['error']}")
@@ -1902,7 +1912,7 @@ async def Get_a_list_of_popular_threat_categories() -> dict[str, Any] | None:
     Get a list of popular threat categories.
     """
     url = f"{BASE_URL}/popular_threat_categories"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     if data["error"]:
         logging.error(f"Error in VT Popular Threat Categories report: {data['error']}")
     logging.info(f"return: {data}")
@@ -1925,7 +1935,7 @@ async def Get_a_user_s_API_usage(id: str, start_date: str | None = None, end_dat
     if end_date:
         params["end_date"] = end_date
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT API Usage: {data['error']}")
@@ -1948,7 +1958,7 @@ async def Get_a_group_s_API_usage(id: str, start_date: str | None = None, end_da
     if end_date:
         params["end_date"] = end_date
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Group API Usage: {data['error']}")
@@ -1975,7 +1985,7 @@ async def Create_a_new_Service_Account(id: str, service_account_id: str) -> dict
         ]
     }
     
-    data = await make_post_request_with_params(url, payload)
+    data = await request.make_post_request_with_params(url, payload)
     
     if data["error"]:
         logging.error(f"Error in VT Create Service Account: {data['error']}")
@@ -1990,7 +2000,7 @@ async def Get_Service_Accounts_of_a_group(id: str) -> dict[str, Any] | None:
     id: Group ID.
     """
     url = f"{BASE_URL}/groups/{id}/relationships/service_accounts"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Group Service Accounts: {data['error']}")
@@ -2005,7 +2015,7 @@ async def Get_a_Service_Account_object(id: str) -> dict[str, Any] | None:
     id: Format: groupId_serviceAccountId.
     """
     url = f"{BASE_URL}/service_accounts/{id}"
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
     
     if data["error"]:
         logging.error(f"Error in VT Get Service Account: {data['error']}")
@@ -2035,7 +2045,7 @@ async def Get_Activity_Logs(group: str, limit: int | None = 10, filter: str | No
     if relationships:
         params["relationships"] = relationships
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
     
     if data["error"]:
         logging.error(f"Error in VT Activity Logs: {data['error']}")
@@ -2067,7 +2077,7 @@ async def Get_a_widget_rendering_URL(query: str, fg1: str | None = None, bg1: st
     if bd1:
         params["bd1"] = bd1
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Widget URL: {data['error']}")
@@ -2104,7 +2114,7 @@ async def Retrieve_the_widget_s_HTML_content(token: str) -> str | None:
     # Warning: This endpoint uses a different base URL than the main API.
     url = f"https://www.virustotal.com/ui/widget/html/{token}"
 
-    html_content = await make_html_get_request(url)
+    html_content = await request.make_html_get_request(url)
 
     if html_content:
         logging.info(f"Successfully retrieved HTML widget for token beginning with: {token[:15]}...")
@@ -2145,7 +2155,7 @@ async def Get_a_widget_rendering_URL(
     if bd1:
         params["bd1"] = bd1
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Get Widget URL: {data['error']}")
@@ -2161,7 +2171,7 @@ async def Retrieve_the_widgets_HTML_content(token: str) -> str | None:
     """
     url = f"https://www.virustotal.com/ui/widget/html/{token}"
     
-    data = await make_html_get_request(url)
+    data = await request.make_html_get_request(url)
 
     if data:
         logging.info(f"Successfully retrieved widget HTML for token: {token}.")
@@ -2189,7 +2199,7 @@ async def Get_a_list_of_MonitorItem_objects_by_path_or_tag(filter: str, limit: i
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Items: {data['error']}")
@@ -2279,7 +2289,7 @@ async def Upload_a_file_or_create_a_new_folder(
     if file_path:
         files_data["file"] = file_path
 
-    data = await make_multipart_post_request(url, data=form_data, files=files_data)
+    data = await request.make_multipart_post_request(url, data=form_data, files=files_data)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Upload/Create: {data['error']}")
@@ -2298,7 +2308,7 @@ async def Get_a_URL_for_uploading_large_files_to_Monitor() -> dict[str, Any] | N
     """
     url = f"{BASE_URL}/monitor/items/upload_url"
     
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Upload URL: {data['error']}")
@@ -2314,7 +2324,7 @@ async def Get_attributes_and_metadata_for_a_specific_MonitorItem(id: str) -> dic
     """
     url = f"{BASE_URL}/monitor/items/{id}"
     
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Item: {data['error']}")
@@ -2356,7 +2366,7 @@ async def Download_a_file_in_VirusTotal_Monitor(id: str) -> bytes | None:
     """
     url = f"{BASE_URL}/monitor/items/{id}/download"
 
-    file_content = await make_binary_get_request(url)
+    file_content = await request.make_binary_get_request(url)
 
     if file_content:
         logging.info(f"Successfully downloaded file with ID: {id}. Size: {len(file_content)} bytes.")
@@ -2375,7 +2385,7 @@ async def Get_a_URL_for_downloading_a_file_in_VirusTotal_Monitor(id: str) -> dic
     """
     url = f"{BASE_URL}/monitor/items/{id}/download_url"
     
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Download URL: {data['error']}")
@@ -2399,7 +2409,7 @@ async def Get_the_latest_file_analyses(id: str, limit: int | None = None, cursor
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Item Analyses: {data['error']}")
@@ -2415,7 +2425,7 @@ async def Get_user_owning_the_MonitorItem_object(id: str) -> dict[str, Any] | No
     """
     url = f"{BASE_URL}/monitor/items/{id}/owner"
     
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Item Owner: {data['error']}")
@@ -2439,7 +2449,7 @@ async def Retrieve_partners_comments_on_a_file(id: str, limit: int | None = None
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Item Comments: {data['error']}")
@@ -2462,7 +2472,7 @@ async def Retrieve_statistics_about_analyses_performed_on_your_software_collecti
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Statistics: {data['error']}")
@@ -2492,7 +2502,7 @@ async def Get_historical_events_about_your_software_collection(
     if filter:
         params["filter"] = filter
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Events: {data['error']}")
@@ -2518,7 +2528,7 @@ async def Get_a_list_of_MonitorHashes_detected_by_an_engine(filter: str, limit: 
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Partner Hashes: {data['error']}")
@@ -2542,7 +2552,7 @@ async def Get_a_list_of_analyses_for_a_file(sha256: str, limit: int | None = Non
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Partner File Analyses: {data['error']}")
@@ -2565,7 +2575,7 @@ async def Get_a_list_of_items_with_a_given_sha256_hash(sha256: str, limit: int |
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Partner Hash Items: {data['error']}")
@@ -2595,7 +2605,7 @@ async def Create_a_comment_over_a_hash(sha256: str, comment: str, engine: str) -
             }
         ]
     }
-    data = await make_post_request_with_params(url, payload)
+    data = await request.make_post_request_with_params(url, payload)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Partner Create Comment: {data['error']}")
@@ -2611,7 +2621,7 @@ async def Get_comments_on_a_sha256_hash(id: str) -> dict[str, Any] | None:
     """
     url = f"{BASE_URL}/monitor_partner/comments/{id}"
     
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Get Monitor Partner Comment: {data['error']}")
@@ -2637,7 +2647,7 @@ async def Download_a_file_with_a_given_sha256_hash(sha256: str, limit: int | Non
         params["cursor"] = cursor
 
     # Pass params only if they are not empty
-    file_content = await make_binary_get_request(url, params=params if params else None)
+    file_content = await request.make_binary_get_request(url, params=params if params else None)
 
     if file_content:
         logging.info(f"Successfully downloaded file (Partner) with hash: {sha256}. Size: {len(file_content)} bytes.")
@@ -2663,7 +2673,7 @@ async def Retrieve_a_download_url_for_a_file_with_a_given_sha256_hash(sha256: st
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Partner Get Download URL: {data['error']}")
@@ -2681,7 +2691,7 @@ async def Download_a_daily_detection_bundle_directly(engine_name: str) -> bytes 
     url = f"{BASE_URL}/monitor_partner/detections_bundle/{engine_name}/download"
 
     # No query parameters needed for this endpoint, just the base URL
-    bundle_content = await make_binary_get_request(url)
+    bundle_content = await request.make_binary_get_request(url)
 
     if bundle_content:
         logging.info(f"Successfully downloaded detection bundle for engine: {engine_name}. Size: {len(bundle_content)} bytes.")
@@ -2699,7 +2709,7 @@ async def Get_a_daily_detection_bundle_download_URL(engine_name: str) -> dict[st
     """
     url = f"{BASE_URL}/monitor_partner/detections_bundle/{engine_name}/download_url"
     
-    data = await make_get_request(url)
+    data = await request.make_get_request(url)
 
     if data["error"]:
         logging.error(f"Error in VT Get Detection Bundle Download URL: {data['error']}")
@@ -2723,7 +2733,7 @@ async def Get_a_list_of_MonitorHashes_detected_by_an_engine(filter: str, limit: 
     if cursor:
         params["cursor"] = cursor
         
-    data = await make_get_request_with_params(url, params)
+    data = await request.make_get_request_with_params(url, params)
 
     if data["error"]:
         logging.error(f"Error in VT Monitor Partner Statistics: {data['error']}")
