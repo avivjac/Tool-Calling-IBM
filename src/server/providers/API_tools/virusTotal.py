@@ -2236,7 +2236,6 @@ async def Get_Activity_Logs(group: str, limit: int | None = 10, filter: str | No
 
 
 #Rendering
-#Widgets
 
 @mcp.tool()
 async def Get_a_widget_rendering_URL(query: str, fg1: str | None = None, bg1: str | None = None, bg2: str | None = None, bd1: str | None = None) -> dict[str, Any] | None:
@@ -2307,6 +2306,64 @@ async def Retrieve_the_widget_s_HTML_content(token: str) -> str | None:
     return html_content
 
 
+#VT Augment
+#Augment
+
+@mcp.tool()
+async def Get_a_widget_rendering_URL(
+    query: str,
+    fg1: str | None = None,
+    bg1: str | None = None,
+    bg2: str | None = None,
+    bd1: str | None = None
+) -> dict[str, Any] | None:
+    """
+    Get a URL for rendering a VirusTotal widget for a given query.
+    query: The query for which the widget will be rendered (e.g., domain, URL, hash).
+    fg1: Foreground color 1 (optional hex code, e.g., '000000').
+    bg1: Background color 1 (optional hex code).
+    bg2: Background color 2 (optional hex code).
+    bd1: Border color 1 (optional hex code).
+    """
+    url = f"{BASE_URL}/widget/url"
+
+    params = {"query": query}
+    if fg1:
+        params["fg1"] = fg1
+    if bg1:
+        params["bg1"] = bg1
+    if bg2:
+        params["bg2"] = bg2
+    if bd1:
+        params["bd1"] = bd1
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Widget URL: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Retrieve_the_widgets_HTML_content(token: str) -> str | None:
+    """
+    Retrieve the widget's HTML content.
+    token: The widget token.
+    """
+    url = f"https://www.virustotal.com/ui/widget/html/{token}"
+    
+    data = await make_html_get_request(url)
+
+    if data:
+        logging.info(f"Successfully retrieved widget HTML for token: {token}.")
+    else:
+        logging.error(f"Failed to retrieve widget HTML for token: {token}.")
+        
+    return data
+
+
+
 #Monitor Items
 @mcp.tool()
 async def Get_a_list_of_MonitorItem_objects_by_path_or_tag(filter: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
@@ -2336,13 +2393,9 @@ async def Get_a_list_of_MonitorItem_objects_by_path_or_tag(filter: str, limit: i
 async def make_multipart_post_request(url: str, data: dict[str, Any] = {}, files: dict[str, Any] = {}) -> dict[str, Any]:
     headers = {
         "x-apikey": API_KEY,
-        # "Content-Type" is NOT set here because httpx sets it automatically to multipart/form-data with the correct boundary.
     }
-
     async with httpx.AsyncClient() as client:
         try:
-            # For file uploads, we use the 'data' parameter for form fields and 'files' for the actual files.
-            # The files need to be opened in binary mode.
             file_handles = {}
             if files:
                 for key, file_path in files.items():
@@ -2353,17 +2406,14 @@ async def make_multipart_post_request(url: str, data: dict[str, Any] = {}, files
                 
             resp = await client.post(url, data=data, files=file_handles, headers=headers, timeout=60.0) # Increased timeout for uploads
             
-            # Important: Close the file handles after the request
             for fh in file_handles.values():
                 fh.close()
                 
             resp.raise_for_status()
             
-            # The response is expected to be JSON
             try:
                 response_data = resp.json()
             except ValueError:
-                 # If response is not JSON, return the plain text
                 response_data = resp.text
 
             return {
@@ -2408,7 +2458,6 @@ async def Upload_a_file_or_create_a_new_folder(
     """
     url = f"{BASE_URL}/monitor/items"
 
-    # Validate that at least path or item is provided
     if not path and not item:
         return {"data": None, "error": "You must provide either a 'path' or an 'item' identifier."}
 
@@ -2422,7 +2471,6 @@ async def Upload_a_file_or_create_a_new_folder(
     if file_path:
         files_data["file"] = file_path
 
-    # Use the new multipart post request helper
     data = await make_multipart_post_request(url, data=form_data, files=files_data)
 
     if data["error"]:
@@ -2471,8 +2519,6 @@ async def make_binary_get_request(url: str, params: dict[str, Any] | None = None
     headers = {
         "x-apikey": API_KEY,
     }
-
-    # Manually construct query parameters string if params exist, matching existing style
     if params:
         url += "?"
         for key, value in params.items():
@@ -2481,10 +2527,8 @@ async def make_binary_get_request(url: str, params: dict[str, Any] | None = None
 
     async with httpx.AsyncClient() as client:
         try:
-            # Increased timeout for potential large file downloads
             resp = await client.get(url, headers=headers, timeout=60.0)
             resp.raise_for_status()
-            # Return the raw binary content
             return resp.content
         except httpx.HTTPStatusError as e:
             logging.error(f"Error response {e.response.status_code} while requesting binary {e.request.url!r}.")
@@ -2648,7 +2692,6 @@ async def Get_historical_events_about_your_software_collection(
     return data
 
 
-#Antivirus Partners
 #Antivirus Partners
 
 @mcp.tool()
