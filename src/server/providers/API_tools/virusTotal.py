@@ -1,9 +1,12 @@
 import requests
+import os
 import httpx
 from mcp.server.fastmcp import FastMCP
 from typing import Any
 import logging
 import base64
+from dotenv import load_dotenv
+load_dotenv() 
 
 # ---------- Logging ----------
 logging.basicConfig(
@@ -18,7 +21,9 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("VirusTotal MCP", json_response=True)
 
 BASE_URL = "https://www.virustotal.com/api/v3"
-API_KEY = ""
+API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+if not API_KEY:
+    raise ValueError("VIRUSTOTAL_API_KEY environment variable is not set")
 
 # Helper function to make requests to VirusTotal API
 async def make_get_request(url: str) -> dict[str, Any]:
@@ -233,26 +238,6 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
     return data
 
 
-# @mcp.tool()
-# async def Add_a_comment_to_an_IP_address(IP: str, comment: str) -> dict[str, Any] | None :
-#     """
-#     Add a comment to an IP address on VirusTotal.
-#     example: IP=' ', comment='This is a test comment.'
-#     """
-
-#     if not is_valid_ip(IP):
-#         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
-
-#     url = f"{BASE_URL}/ip_addresses/{IP}/comments"
-    
-#     payload = {
-#         "data": {
-#             "type": "comment",
-#             "attributes": {
-#                 "text": comment
-#             }
-#         }
-#     }
 
     data = await make_post_request_with_params(url, payload)
 
@@ -322,34 +307,6 @@ async def Get_votes_on_an_IP_address(IP : str) -> dict[str, Any] | None :
     return data
 
 
-# @mcp.tool()
-# async def Add_a_vote_to_an_IP_address(IP: str, vote: dict[str, Any]) -> dict[str, Any] | None :
-#     """
-#     Add a vote to an IP address on VirusTotal.
-#     example: IP=' ', vote={'verdict': 'malicious'}
-#     """
-#     if not is_valid_ip(IP):
-#         raise InvalidIPAddressError(f"The IP address '{IP}' is not a valid address.")
-
-#     url = f"{BASE_URL}/ip_addresses/{IP}/votes"
-    
-#     payload = {
-#         "data": {
-#             "type": "vote",
-#             "attributes": {
-#     	        "verdict": vote
-#             }
-#         }
-#     }
-
-#     data = await make_post_request_with_params(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error in VT IP report: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
-
-
 
 #Domains & Resolutions
 class InvalidDomainError(Exception):
@@ -413,32 +370,6 @@ async def Get_comments_on_a_domain(domain: str, limit: int | None = 10, cursor: 
     logging.info("return: {data}")
     return data
 
-
-# @mcp.tool()
-# async def Add_a_comment_to_a_domain(domain: str, comment: str) -> dict[str, Any] | None:
-#     """
-#     Add a comment to a domain on VirusTotal.
-#     example: domain='example.com', comment='This is a test comment.'
-#     """
-#     if not is_valid_domain(domain):
-#         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
-#     url = f"{BASE_URL}/domains/{domain}/comments"
-    
-#     payload = {
-#         "data": {
-#             "type": "comment",
-#             "attributes": {
-#                 "text": comment
-#             }
-#         }
-#     }
-
-#     data = await make_post_request(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error in Domain report: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
 
 
 @mcp.tool()
@@ -521,34 +452,6 @@ async def Get_votes_on_a_domain(domain: str) -> dict[str, Any] | None:
         logging.error(f"Error in Domain report: {data['error']}")
     logging.info("return: {data}")
     return data
-
-
-# @mcp.tool()
-# async def Add_a_vote_to_a_domain(domain: str, verdict : str) -> dict[str, Any] | None:
-#     """
-#     Add a vote to a domain on VirusTotal.
-#     example: domain='example.com', verdict='malicious'
-#     """
-#     if not is_valid_domain(domain):
-#         raise InvalidDomainError(f"The domain '{domain}' is not a valid domain.")
-    
-#     url = f"{BASE_URL}/domains/{domain}/votes"
-    
-#     payload = {
-#         "data": {
-#             "type": "vote",
-#             "attributes": {
-#                 "verdict": verdict
-#             }
-#         }
-#     }
-
-#     data = await make_post_request(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error in Domain report: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
 
 
 
@@ -648,30 +551,6 @@ async def Get_comments_on_a_file(file_id: str, limit: int | None = 10, cursor: s
 
 
 
-# @mcp.tool()
-# async def Add_a_comment_to_a_file(file_id: str, comment: str) -> dict[str, Any] | None:
-#     """
-#     Add a comment to a file.
-#     """
-#     url = f"{BASE_URL}/files/{file_id}/comments"
-
-#     payload = {
-#         "data": {
-#             "type": "comment",
-#             "attributes": {
-#                 "text": comment
-#             }
-#         }
-#     }
-
-#     data = await make_post_request_with_params(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error in VT File report: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
-
-
 
 @mcp.tool()
 async def Get_objects_related_to_a_file(file_id: str, relationship: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
@@ -756,30 +635,6 @@ async def Get_votes_on_a_file(file_id: str, limit: int | None = 10, cursor: str 
     return data
 
 
-
-# @mcp.tool()
-# async def Add_a_vote_to_a_file(file_id: str, vote: str) -> dict[str, Any] | None:
-#     """
-#     Add a vote to a file.
-#     example: vote='malicious' or 'harmless'
-#     """
-#     url = f"{BASE_URL}/files/{file_id}/votes"
-
-#     payload = {
-#         "data": {
-#             "type": "vote",
-#             "attributes": {
-#                 "verdict": vote
-#             }
-#         }
-#     }
-
-#     data = await make_post_request_with_params(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error in VT File report: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
 
 
 #File Behaviours
@@ -963,30 +818,6 @@ async def Get_comments_on_a_URL(url_id: str, limit: int | None = 10, cursor: str
     return data
 
 
-# @mcp.tool()
-# async def Add_a_comment_on_a_URL(url_id: str, comment: str) -> dict[str, Any] | None:
-#     """
-#     Add a comment to a URL.
-#     """
-#     url = f"{BASE_URL}/urls/{url_id}/comments"
-
-#     payload = {
-#         "data": {
-#             "type": "comment",
-#             "attributes": {
-#                 "text": comment
-#             }
-#         }
-#     }
-
-#     data = await make_post_request_with_params(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error adding VT URL comment: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
-
-
 
 @mcp.tool()
 async def Get_objects_related_to_a_URL(url_id: str, relationship: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
@@ -1040,29 +871,6 @@ async def Get_votes_on_a_URL(url_id: str, limit: int | None = 10, cursor: str | 
         logging.error(f"Error fetching VT URL votes: {data['error']}")
     logging.info("return: {data}")
     return data
-
-
-# @mcp.tool()
-# async def Add_a_vote_on_a_URL(url_id: str, verdict: str) -> dict[str, Any] | None:
-#     """
-#     Add a vote on a URL.
-#     verdict must be either 'harmless' or 'malicious'.
-#     """
-#     url = f"{BASE_URL}/urls/{url_id}/votes"
-
-#     payload = {
-#         "type": "vote",
-#         "attributes": {
-#             "verdict": verdict
-#         }
-#     }
-
-#     data = await make_post_request_with_params(url, payload)
-
-#     if data["error"]:
-#         logging.error(f"Error adding VT URL vote: {data['error']}")
-#     logging.info("return: {data}")
-#     return data
 
 
 #comments
