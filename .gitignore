@@ -1,0 +1,5 @@
+# environment / secrets
+.env
+
+*.log
+*.pyc
