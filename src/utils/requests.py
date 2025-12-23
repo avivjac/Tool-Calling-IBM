@@ -85,6 +85,42 @@ async def make_get_request_with_params(url : str, params : dict[str , Any], API_
                 "error": str(e),
             }
 
+# the NIST API requires a different format for the params, there are some params that don't require a value when calling the API endpoint
+async def make_get_request_with_params_for_nist(url : str, params : dict[str , Any], API_KEY: str) -> dict[str, Any] | None :
+    headers = {
+        "x-apikey": API_KEY,
+    }
+
+    url += "?"
+    for key, value in params.items():
+        if key in ["hasCertAlerts", "hasCertNotes", "hasKev", "hasOval", "isVulnerable", "keywordExactMatch", "noRejected", "keywordExactMatch"]:
+            url += f"{key}&"
+        else:
+            url += f"{key}={value}&"
+
+    url = url[:-1]  
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+
 async def make_post_request(url : str, API_KEY: str) -> dict[str, Any] | None :
     headers = {
         "x-apikey": API_KEY,

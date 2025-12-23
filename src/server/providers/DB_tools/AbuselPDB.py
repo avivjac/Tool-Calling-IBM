@@ -164,39 +164,6 @@ async def Check_CIDR(cidr : str, days : int = 30) -> dict[str, Any] | None :
 
     return data
 
-@mcp.tool()
-async def Report_IP(ip : str, category : str, comment : str | None = None) -> dict[str, Any] | None :
-    """
-    Report an IP address for abusel
-    """
-    if not validate.is_valid_ip(ip):
-        logging.error("Invalid IP address")
-        raise ValueError("Invalid IP address")
-    
-    url = f"{BASE_URL}/report/json"
-    url += "?"
-    params = {
-        "key": API_KEY,
-        "category": category,
-        "comment": comment,
-        "ip": ip
-    }
-    
-    for key, value in params.items():
-        url += f"{key}={value}&"
-
-    url = url[:-1]
-    
-    
-    data = await make_post_request(url)
-
-    if data["error"]:
-        logging.error("No data received")
-    
-    logging.info(f"return: {data}")
-
-    return data
-
 def main():
     # Initialize and run the server
     mcp.run(transport='stdio')
