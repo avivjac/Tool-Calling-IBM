@@ -3,6 +3,7 @@ import httpx
 from mcp.server.fastmcp import FastMCP
 from typing import Any
 import logging
+import base64
 
 # ---------- Logging ----------
 logging.basicConfig(
@@ -1296,7 +1297,7 @@ async def Get_object_descriptors_related_to_an_attack_technique(ID: str, relatio
     return data
 
 
-#Pupular Threat Categories
+#Popular Threat Categories
 
 @mcp.tool()
 async def Get_a_list_of_popular_threat_categories() -> dict[str, Any] | None:
@@ -2086,6 +2087,797 @@ async def Get_object_descriptors_related_to_a_group(ID: str, relationship: str, 
     logging.info(f"return: {data}")
     return data
 
+#Pupular Threat Categories
+@mcp.tool()
+async def Get_a_list_of_popular_threat_categories() -> dict[str, Any] | None:
+    """
+    Get a list of popular threat categories.
+    """
+    url = f"{BASE_URL}/popular_threat_categories"
+    data = await make_get_request(url)
+    if data["error"]:
+        logging.error(f"Error in VT Popular Threat Categories report: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+#Quota Management
+
+@mcp.tool()
+async def Get_a_user_s_API_usage(id: str, start_date: str | None = None, end_date: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a user's API usage.
+    id: User ID or API key.
+    start_date: A string in format YYYYMMDD.
+    end_date: A string in format YYYYMMDD.
+    """
+    url = f"{BASE_URL}/users/{id}/api_usage"
+    params = {}
+    if start_date:
+        params["start_date"] = start_date
+    if end_date:
+        params["end_date"] = end_date
+        
+    data = await make_get_request_with_params(url, params)
+    
+    if data["error"]:
+        logging.error(f"Error in VT API Usage: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_a_group_s_API_usage(id: str, start_date: str | None = None, end_date: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a group's API usage.
+    id: Group ID.
+    start_date: A string in format YYYYMMDD.
+    end_date: A string in format YYYYMMDD.
+    """
+    url = f"{BASE_URL}/groups/{id}/api_usage"
+    params = {}
+    if start_date:
+        params["start_date"] = start_date
+    if end_date:
+        params["end_date"] = end_date
+        
+    data = await make_get_request_with_params(url, params)
+    
+    if data["error"]:
+        logging.error(f"Error in VT Group API Usage: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+#Service Account Management
+@mcp.tool()
+async def Create_a_new_Service_Account(id: str, service_account_id: str) -> dict[str, Any] | None:
+    """
+    Create a new Service Account inside your VT Enterprise group.
+    id: Group ID.
+    service_account_id: A descriptive identifier which must be unique inside your group.
+    """
+    url = f"{BASE_URL}/groups/{id}/relationships/service_accounts"
+    
+    payload = {
+        "data": [
+            {
+                "type": "service_account",
+                "id": service_account_id
+            }
+        ]
+    }
+    
+    data = await make_post_request_with_params(url, payload)
+    
+    if data["error"]:
+        logging.error(f"Error in VT Create Service Account: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+ 
+
+@mcp.tool()
+async def Get_Service_Accounts_of_a_group(id: str) -> dict[str, Any] | None:
+    """
+    Get Service Accounts of a group.
+    id: Group ID.
+    """
+    url = f"{BASE_URL}/groups/{id}/relationships/service_accounts"
+    data = await make_get_request(url)
+    
+    if data["error"]:
+        logging.error(f"Error in VT Group Service Accounts: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_a_Service_Account_object(id: str) -> dict[str, Any] | None:
+    """
+    Get the information about a Service Account object.
+    id: Format: groupId_serviceAccountId.
+    """
+    url = f"{BASE_URL}/service_accounts/{id}"
+    data = await make_get_request(url)
+    
+    if data["error"]:
+        logging.error(f"Error in VT Get Service Account: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+
+#Audit Log
+
+@mcp.tool()
+async def Get_Activity_Logs(group: str, limit: int | None = 10, filter: str | None = None, cursor: str | None = None, relationships: str | None = None) -> dict[str, Any] | None:
+    """
+    Get Activity Logs.
+    group: Group ID.
+    filter: Filter logs by different properties.
+    relationships: Provides additional information about the logs. Supported values: user, group, target.
+    limit: Maximum number of logs to retrieve. The maximum value is 40 logs.
+    """
+    url = f"{BASE_URL}/groups/{group}/activity_log_entries"
+    
+    params = {"limit": limit}
+    if filter:
+        params["filter"] = filter
+    if cursor:
+        params["cursor"] = cursor
+    if relationships:
+        params["relationships"] = relationships
+        
+    data = await make_get_request_with_params(url, params)
+    
+    if data["error"]:
+        logging.error(f"Error in VT Activity Logs: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+#Rendering
+#Widgets
+
+@mcp.tool()
+async def Get_a_widget_rendering_URL(query: str, fg1: str | None = None, bg1: str | None = None, bg2: str | None = None, bd1: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a widget rendering URL.
+    query: A file hash, domain, URL or IP address.
+    fg1: Theme primary foreground color in hex notation.
+    bg1: Theme primary background color in hex notation.
+    bg2: Theme secondary background color in hex notation.
+    bd1: Theme border color in hex notation.
+    """
+    url = f"{BASE_URL}/widget/url"
+
+    params = {"query": query}
+    if fg1:
+        params["fg1"] = fg1
+    if bg1:
+        params["bg1"] = bg1
+    if bg2:
+        params["bg2"] = bg2
+    if bd1:
+        params["bd1"] = bd1
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Widget URL: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+# Helper function specifically for fetching raw HTML/text content
+async def make_html_get_request(url: str) -> str | None:
+    # Note: The documentation suggests this specific UI endpoint does not require the x-apikey header.
+    # If it does turn out to need it, uncomment the headers line below.
+    # headers = {"x-apikey": API_KEY}
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            # resp = await client.get(url, headers=headers, timeout=30.0) # Use this if API key is needed later
+            resp = await client.get(url, timeout=30.0)
+            resp.raise_for_status()
+            # Return the raw text content (HTML) instead of parsing JSON
+            return resp.text
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting HTML {e.request.url!r}.")
+            return None
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting HTML {url!r}: {e}")
+            return None
+
+@mcp.tool()
+async def Retrieve_the_widget_s_HTML_content(token: str) -> str | None:
+    """
+    Retrieve the actual HTML content of the widget report for a given observable.
+    token: The token provided by the previous endpoint: /widget/url
+    Returns raw HTML string.
+    """
+    # Warning: This endpoint uses a different base URL than the main API.
+    url = f"https://www.virustotal.com/ui/widget/html/{token}"
+
+    html_content = await make_html_get_request(url)
+
+    if html_content:
+        logging.info(f"Successfully retrieved HTML widget for token beginning with: {token[:15]}...")
+    else:
+        logging.error(f"Failed to retrieve HTML widget for token: {token}")
+        
+    return html_content
+
+
+#Monitor Items
+@mcp.tool()
+async def Get_a_list_of_MonitorItem_objects_by_path_or_tag(filter: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a list of MonitorItem objects by path or tag.
+    filter: The filter query. Examples: 'tag:detected', 'path:/myfolder/', 'item:monitor_item_id'.
+            Possible tags include: 'detected', 'new-detections', 'decreasing-detections', 'increasing-detections', 'solved-detections', 'swapped-detections', '[engine_name]'.
+    """
+    url = f"{BASE_URL}/monitor/items"
+
+    params = {"filter": filter}
+    
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Items: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+# Helper function specifically for multipart/form-data POST requests (for file uploads with other parameters)
+async def make_multipart_post_request(url: str, data: dict[str, Any] = {}, files: dict[str, Any] = {}) -> dict[str, Any]:
+    headers = {
+        "x-apikey": API_KEY,
+        # "Content-Type" is NOT set here because httpx sets it automatically to multipart/form-data with the correct boundary.
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            # For file uploads, we use the 'data' parameter for form fields and 'files' for the actual files.
+            # The files need to be opened in binary mode.
+            file_handles = {}
+            if files:
+                for key, file_path in files.items():
+                    try:
+                        file_handles[key] = open(file_path, "rb")
+                    except FileNotFoundError:
+                        return {"data": None, "error": f"File not found at path: {file_path}"}
+                
+            resp = await client.post(url, data=data, files=file_handles, headers=headers, timeout=60.0) # Increased timeout for uploads
+            
+            # Important: Close the file handles after the request
+            for fh in file_handles.values():
+                fh.close()
+                
+            resp.raise_for_status()
+            
+            # The response is expected to be JSON
+            try:
+                response_data = resp.json()
+            except ValueError:
+                 # If response is not JSON, return the plain text
+                response_data = resp.text
+
+            return {
+                "data": response_data,
+                "error": None,
+            }
+
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}: {e.response.text}")
+            return {
+                "data": None,
+                "error": f"HTTP error {e.response.status_code}: {e.response.text}",
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except Exception as e:
+            logging.error(f"An unexpected error occurred: {e}")
+            return {
+                "data": None,
+                "error": f"Unexpected error: {str(e)}",
+            }
+
+
+@mcp.tool()
+async def Upload_a_file_or_create_a_new_folder(
+    file_path: str | None = None,
+    path: str | None = None,
+    item: str | None = None
+) -> dict[str, Any] | None:
+    """
+    Upload a file or create a new folder in VirusTotal Monitor.
+    
+    :param file_path: The local path to the file you want to upload. Omit this to create a folder.
+    :param path: A path relative to the current monitor user root folder. 
+                 Must include the filename at the end for file uploads (e.g., '/folder/myfile.exe').
+                 Must end with a slash (/) to create a folder (e.g., '/my_new_folder/').
+    :param item: A Monitor ID describing a group and path. Can be used instead of 'path'.
+    """
+    url = f"{BASE_URL}/monitor/items"
+
+    # Validate that at least path or item is provided
+    if not path and not item:
+        return {"data": None, "error": "You must provide either a 'path' or an 'item' identifier."}
+
+    form_data = {}
+    if path:
+        form_data["path"] = path
+    if item:
+        form_data["item"] = item
+        
+    files_data = {}
+    if file_path:
+        files_data["file"] = file_path
+
+    # Use the new multipart post request helper
+    data = await make_multipart_post_request(url, data=form_data, files=files_data)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Upload/Create: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+
+@mcp.tool()
+async def Get_a_URL_for_uploading_large_files_to_Monitor() -> dict[str, Any] | None:
+    """
+    Get a special upload URL for uploading files larger than 32MB to VirusTotal Monitor.
+    For smaller files, you can use the Upload_a_file_or_create_a_new_folder tool.
+    The returned URL can be used as a drop-in replacement for the /items endpoint.
+    A new upload URL should be generated for each big file upload.
+    """
+    url = f"{BASE_URL}/monitor/items/upload_url"
+    
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Upload URL: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_attributes_and_metadata_for_a_specific_MonitorItem(id: str) -> dict[str, Any] | None:
+    """
+    Get attributes and metadata for a specific MonitorItem.
+    id: The MonitorItem ID (e.g., a file hash or folder ID).
+    """
+    url = f"{BASE_URL}/monitor/items/{id}"
+    
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Item: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+# Helper function specifically for fetching raw binary content (e.g., for file downloads)
+async def make_binary_get_request(url: str, params: dict[str, Any] | None = None) -> bytes | None:
+    headers = {
+        "x-apikey": API_KEY,
+    }
+
+    # Manually construct query parameters string if params exist, matching existing style
+    if params:
+        url += "?"
+        for key, value in params.items():
+            url += f"{key}={str(value)}&"
+        url = url[:-1]
+
+    async with httpx.AsyncClient() as client:
+        try:
+            # Increased timeout for potential large file downloads
+            resp = await client.get(url, headers=headers, timeout=60.0)
+            resp.raise_for_status()
+            # Return the raw binary content
+            return resp.content
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting binary {e.request.url!r}.")
+            return None
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting binary {url!r}: {e}")
+            return None
+
+
+
+@mcp.tool()
+async def Download_a_file_in_VirusTotal_Monitor(id: str) -> bytes | None:
+    """
+    Download a file from VirusTotal Monitor.
+    id: The MonitorItem ID of the file you want to download.
+    Returns the raw binary data of the file.
+    """
+    url = f"{BASE_URL}/monitor/items/{id}/download"
+
+    file_content = await make_binary_get_request(url)
+
+    if file_content:
+        logging.info(f"Successfully downloaded file with ID: {id}. Size: {len(file_content)} bytes.")
+    else:
+        logging.error(f"Failed to download file with ID: {id}.")
+        
+    return file_content
+
+
+@mcp.tool()
+async def Get_a_URL_for_downloading_a_file_in_VirusTotal_Monitor(id: str) -> dict[str, Any] | None:
+    """
+    Get a signed URL for downloading a specific file from VirusTotal Monitor.
+    The URL expires after 1 hour.
+    id: The MonitorItem ID (e.g., a file hash) of the file to download.
+    """
+    url = f"{BASE_URL}/monitor/items/{id}/download_url"
+    
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Download URL: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_the_latest_file_analyses(id: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get the latest analyses for a specific Monitor item.
+    id: The Monitor item identifier.
+    limit: Maximum number of analyses to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor/items/{id}/analyses"
+    
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Item Analyses: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_user_owning_the_MonitorItem_object(id: str) -> dict[str, Any] | None:
+    """
+    Get the user owning the MonitorItem object.
+    id: The Monitor item identifier.
+    """
+    url = f"{BASE_URL}/monitor/items/{id}/owner"
+    
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Item Owner: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Retrieve_partners_comments_on_a_file(id: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Retrieve partner's comments on a file (monitor item).
+    id: The Monitor item identifier.
+    limit: Maximum number of comments to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor/items/{id}/comments"
+
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Item Comments: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Retrieve_statistics_about_analyses_performed_on_your_software_collection(limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Retrieve statistics about analyses performed on your software collection in VirusTotal Monitor.
+    limit: Maximum number of statistics entries to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor/statistics"
+
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Statistics: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_historical_events_about_your_software_collection(
+    cursor: str | None = None,
+    job_id: str | None = None,
+    filter: str | None = None
+) -> dict[str, Any] | None:
+    """
+    Retrieve historical events about your software collection in VirusTotal Monitor.
+    cursor: Continue listing after this offset.
+    job_id: Filter events by a specific job ID.
+    filter: Filter query to select specific events.
+    """
+    url = f"{BASE_URL}/monitor/events"
+
+    params = {}
+    if cursor:
+        params["cursor"] = cursor
+    if job_id:
+        params["job_id"] = job_id
+    if filter:
+        params["filter"] = filter
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Events: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+#Antivirus Partners
+#Antivirus Partners
+
+@mcp.tool()
+async def Get_a_list_of_MonitorHashes_detected_by_an_engine(filter: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a list of MonitorHashes detected by an antivirus engine.
+    filter: The filter query, typically in the format 'engine:engine_name' (e.g., 'engine:Symantec').
+    limit: Maximum number of hashes to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor_partner/hashes"
+
+    params = {"filter": filter}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Partner Hashes: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_a_list_of_analyses_for_a_file(sha256: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a list of analyses for a file.
+    sha256: The SHA256 hash of the file.
+    limit: Maximum number of analyses to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor_partner/hashes/{sha256}/analyses"
+
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Partner File Analyses: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+@mcp.tool()
+async def Get_a_list_of_items_with_a_given_sha256_hash(sha256: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Get a list of items with a given sha256 hash.
+    sha256: The SHA256 hash of the file.
+    limit: Maximum number of items to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor_partner/hashes/{sha256}/items"
+
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Partner Hash Items: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Create_a_comment_over_a_hash(sha256: str, comment: str, engine: str) -> dict[str, Any] | None:
+    """
+    Create a comment over a hash (Antivirus Partners endpoint).
+    sha256: The SHA256 hash to comment on.
+    comment: The text of the comment.
+    engine: The Engine ID associated with the comment.
+    """
+    url = f"{BASE_URL}/monitor_partner/hashes/{sha256}/comments"
+    payload = {
+        "data": [
+            {
+                "attributes": {
+                    "comment": comment,
+                    "detection": "confirmed",
+                    "engine": engine,
+                    "sha256": sha256
+                },
+                "type": "monitor_hash_comment"
+            }
+        ]
+    }
+    data = await make_post_request_with_params(url, payload)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Partner Create Comment: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_comments_on_a_sha256_hash(id: str) -> dict[str, Any] | None:
+    """
+    Get comments on a sha256 hash (Antivirus Partners endpoint).
+    id: The comment ID.
+    """
+    url = f"{BASE_URL}/monitor_partner/comments/{id}"
+    
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Monitor Partner Comment: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Download_a_file_with_a_given_sha256_hash(sha256: str, limit: int | None = None, cursor: str | None = None) -> bytes | None:
+    """
+    Download a file with a given sha256 hash (Antivirus Partners endpoint).
+    sha256: The SHA256 hash of the file to download.
+    limit: (Optional parameter based on documentation)
+    cursor: (Optional parameter based on documentation)
+    Returns the raw binary data of the file.
+    """
+    url = f"{BASE_URL}/monitor_partner/files/{sha256}/download"
+
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+
+    # Pass params only if they are not empty
+    file_content = await make_binary_get_request(url, params=params if params else None)
+
+    if file_content:
+        logging.info(f"Successfully downloaded file (Partner) with hash: {sha256}. Size: {len(file_content)} bytes.")
+    else:
+        logging.error(f"Failed to download file (Partner) with hash: {sha256}.")
+        
+    return file_content
+
+
+@mcp.tool()
+async def Retrieve_a_download_url_for_a_file_with_a_given_sha256_hash(sha256: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Retrieve a download url for a file with a given sha256 hash (Antivirus Partners endpoint).
+    sha256: The SHA256 hash of the file.
+    limit: (Optional parameter based on documentation)
+    cursor: (Optional parameter based on documentation)
+    """
+    url = f"{BASE_URL}/monitor_partner/files/{sha256}/download_url"
+
+    params = {}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Partner Get Download URL: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Download_a_daily_detection_bundle_directly(engine_name: str) -> bytes | None:
+    """
+    Download a daily detection bundle directly for a specific engine (Antivirus Partners endpoint).
+    engine_name: The name of the antivirus engine.
+    Returns the raw binary data of the bundle.
+    """
+    url = f"{BASE_URL}/monitor_partner/detections_bundle/{engine_name}/download"
+
+    # No query parameters needed for this endpoint, just the base URL
+    bundle_content = await make_binary_get_request(url)
+
+    if bundle_content:
+        logging.info(f"Successfully downloaded detection bundle for engine: {engine_name}. Size: {len(bundle_content)} bytes.")
+    else:
+        logging.error(f"Failed to download detection bundle for engine: {engine_name}.")
+        
+    return bundle_content
+
+
+@mcp.tool()
+async def Get_a_daily_detection_bundle_download_URL(engine_name: str) -> dict[str, Any] | None:
+    """
+    Get a daily detection bundle download URL for a specific engine (Antivirus Partners endpoint).
+    engine_name: The name of the antivirus engine.
+    """
+    url = f"{BASE_URL}/monitor_partner/detections_bundle/{engine_name}/download_url"
+    
+    data = await make_get_request(url)
+
+    if data["error"]:
+        logging.error(f"Error in VT Get Detection Bundle Download URL: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
+
+
+@mcp.tool()
+async def Get_a_list_of_MonitorHashes_detected_by_an_engine(filter: str, limit: int | None = None, cursor: str | None = None) -> dict[str, Any] | None:
+    """
+    Retrieve statistics about analyses performed by your engine (Antivirus Partners endpoint).
+    filter: The filter query, typically to select your engine.
+    limit: Maximum number of statistics entries to retrieve.
+    cursor: Continue listing after this offset.
+    """
+    url = f"{BASE_URL}/monitor_partner/statistics"
+
+    params = {"filter": filter}
+    if limit:
+        params["limit"] = limit
+    if cursor:
+        params["cursor"] = cursor
+        
+    data = await make_get_request_with_params(url, params)
+
+    if data["error"]:
+        logging.error(f"Error in VT Monitor Partner Statistics: {data['error']}")
+    logging.info(f"return: {data}")
+    return data
 
 
 def main():
