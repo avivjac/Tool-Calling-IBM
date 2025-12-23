@@ -202,3 +202,49 @@ async def make_post_request_form(url: str, form: dict[str, Any], API_KEY: str) -
                 "data": None,
                 "error": str(e),
             }
+
+async def make_get_request_without_headers(url: str) -> dict[str, Any]:
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(url, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+
+async def make_post_request_without_headers(url: str) -> dict[str, Any]:
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(url, timeout=30.0)
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "data": data,
+                "error": None,
+            }
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
+            return {
+                "data": None,
+                "error": str(e),
+            }
+        except httpx.RequestError as e:
+            logging.error(f"Request error while requesting {url!r}: {e}")
+            return {
+                "data": None,
+                "error": str(e),
+            }

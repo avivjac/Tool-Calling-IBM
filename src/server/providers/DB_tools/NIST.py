@@ -43,78 +43,13 @@ if not API_KEY:
     raise RuntimeError("Missing NIST_API_KEY")
 
 # ------------------------
-# Helper Request Functions
-# ------------------------
-
-# Helper function to make requests to VirusTotal API
-async def make_get_request(url: str) -> dict[str, Any]:
-    headers = {
-        "x-apikey": API_KEY,
-    }
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-
-async def make_get_request_with_params(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
-    headers = {
-        "x-apikey": API_KEY,
-    }
-
-    url += "?"
-    for key, value in params.items():
-        url += f"{key}={value}&"
-
-    url = url[:-1]  
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-    
-# ------------------------
 # Tools
 # ------------------------
 
 # Implemention of the APIs endpoints as tools
 
 @mcp.tool()
-async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : str | None = None, cvssV2Metrics : str | None = None, cvssV2Severity :str | None = None, cvssV3Metrics : str | None = None, cvssV3Severity :str | None = None, cvssV4Metrics :str | None = None, cvssV4Severity :str | None = None, cweId : str | None = None, hasCertAlerts : bool | None = None, hasCertNotes : bool | None = None, hasKev : bool | None = None, hasOval : bool | None = None, isVulnerable : bool | None = None, kevStartDate : str | None = None, kevEndDate : str | None = None, keywordExactMatch : bool | None  = None, keywordSearch : str | None = None, lastModStartDare : str | None = None, lastModEndDate : str | None = None, noReject : bool | None = None, pubStartDate : str | None = None, pubEndDate : str | None = None, resultsPerPage : int | None = None, startIndex : int  | None = None, sourceIdentifier : str | None = None, versionEnd : str | None = None, versionEndType : str | None = None, versionStart : str | None = None, versionStartType : str | None = None, virtualMatchString : str | None = None) -> dict[str, Any] | None :
+async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : str | None = None, cvssV2Metrics : str | None = None, cvssV2Severity :str | None = None, cvssV3Metrics : str | None = None, cvssV3Severity :str | None = None, cvssV4Metrics :str | None = None, cvssV4Severity :str | None = None, cweId : str | None = None, hasCertAlerts : bool | None = None, hasCertNotes : bool | None = None, hasKev : bool | None = None, hasOval : bool | None = None, isVulnerable : bool | None = None, kevStartDate : str | None = None, kevEndDate : str | None = None, keywordExactMatch : bool | None  = None, keywordSearch : str | None = None, lastModStartDate : str | None = None, lastModEndDate : str | None = None, noReject : bool | None = None, pubStartDate : str | None = None, pubEndDate : str | None = None, resultsPerPage : int | None = None, startIndex : int  | None = None, sourceIdentifier : str | None = None, versionEnd : str | None = None, versionEndType : str | None = None, versionStart : str | None = None, versionStartType : str | None = None, virtualMatchString : str | None = None) -> dict[str, Any] | None :
     """
     API Endpoint to get CVE information.
     """
@@ -125,7 +60,7 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
         logging.error("Invalid CPE name")
         raise ValueError("Invalid CPE name")
 
-    if cveID is not None and not validate.is_valid_cve_id(cveID):
+    if cveID is not None and not validate.is_valid_cve(cveID):
         logging.error("Invalid CVE ID")
         raise ValueError("Invalid CVE ID")
 
@@ -133,17 +68,22 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
         logging.error("Invalid CVE Tag")
         raise ValueError("Invalid CVE Tag, need to be one of: disputed, unsupported-when-assigned, exclusively-hosted-service")
 
-    if cvssV2Metrics is not None and cvssV3Metrics is None and cvssV4Metrics is None and not isinstance(cvssV2Metrics, list[str]):
+    cvss_metrics_count = sum(1 for m in [cvssV2Metrics, cvssV3Metrics, cvssV4Metrics] if m is not None)
+    if cvss_metrics_count > 1:
         logging.error("Invalid CVSS metrics")
         raise ValueError("Invalid CVSS metrics, need to be a list of strings, and only one of cvssV2Metrics, cvssV3Metrics, cvssV4Metrics can be provided")
 
-    if cvssV3Metrics is not None and cvssV2Metrics is None and cvssV4Metrics is None and not isinstance(cvssV3Metrics, list[str]):
-        logging.error("Invalid CVSS metrics")
-        raise ValueError("Invalid CVSS metrics, need to be a list of strings, and only one of cvssV2Metrics, cvssV3Metrics, cvssV4Metrics can be provided")
+    if cvssV2Metrics is not None and not isinstance(cvssV2Metrics, list):
+         logging.error("Invalid CVSS metrics")
+         raise ValueError("Invalid CVSS metrics, need to be a list of strings")
 
-    if cvssV4Metrics is not None and cvssV2Metrics is None and cvssV3Metrics is None and not isinstance(cvssV4Metrics, list[str]):
-        logging.error("Invalid CVSS metrics")
-        raise ValueError("Invalid CVSS metrics, need to be a list of strings, and only one of cvssV2Metrics, cvssV3Metrics, cvssV4Metrics can be provided")
+    if cvssV3Metrics is not None and not isinstance(cvssV3Metrics, list):
+         logging.error("Invalid CVSS metrics")
+         raise ValueError("Invalid CVSS metrics, need to be a list of strings")
+
+    if cvssV4Metrics is not None and not isinstance(cvssV4Metrics, list):
+         logging.error("Invalid CVSS metrics")
+         raise ValueError("Invalid CVSS metrics, need to be a list of strings")
 
     if cvssV2Severity is not None and cvssV3Severity is not None:
         logging.error("Invalid CVSS severity")
@@ -186,9 +126,9 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
         logging.error("Invalid kevEndDate format. Expected ISO-8601.")
         raise ValueError("Invalid kevEndDate format. Expected ISO-8601.")
 
-    if lastModStartDare is not None and not validate.is_valid_date(lastModStartDare):
-        logging.error("Invalid lastModStartDare format. Expected ISO-8601.")
-        raise ValueError("Invalid lastModStartDare format. Expected ISO-8601.")
+    if lastModStartDate is not None and not validate.is_valid_date(lastModStartDate):
+        logging.error("Invalid lastModStartDate format. Expected ISO-8601.")
+        raise ValueError("Invalid lastModStartDate format. Expected ISO-8601.")
 
     if lastModEndDate is not None and not validate.is_valid_date(lastModEndDate):
         logging.error("Invalid lastModEndDate format. Expected ISO-8601.")
@@ -226,15 +166,15 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
         "hasKev": hasKev, 
         "hasOval": hasOval,
         "isVulnerable": isVulnerable, 
-        "kevStartDate": kevStartDate, # ?
+        "kevStartDate": kevStartDate, 
         "kevEndDate": kevEndDate,
         "keywordExactMatch": keywordExactMatch, 
         "keywordSearch": keywordSearch, 
-        "lastModStartDare": lastModStartDare,
+        "lastModStartDate": lastModStartDate,
         "lastModEndDate": lastModEndDate,
         "noReject": noReject,
-        "pubStartDate": pubStartDate, #
-        "pubEndDate": pubEndDate, #
+        "pubStartDate": pubStartDate, 
+        "pubEndDate": pubEndDate, 
         "resultsPerPage": resultsPerPage,
         "startIndex": startIndex,
         "sourceIdentifier": sourceIdentifier,
@@ -246,7 +186,7 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
     }
 
     # remove None values
-    params = {k: v for k, v in pasrams.items() if v}
+    params = {k: v for k, v in params.items() if v}
 
     data = await requests.make_get_request_with_params_for_nist(url, params, API_KEY)
     
@@ -256,6 +196,8 @@ async def CVE(cpeName : str | None = None, cveID : str | None = None, cveTag : s
     logging.info(f"return: {data}")
 
     return data
+
+# Functions to get CVE using the same endpoint as above but for specific parametrs.
 
 @mcp.tool()
 async def get_CVE_by_CPE(cpeName : str) -> dict[str, Any] | None :
@@ -414,6 +356,40 @@ async def get_CVE_by_keywordSearch(keywordSearch : str) -> dict[str, Any] | None
     return data 
 
 @mcp.tool()
+async def get_CVE_by_date(kevStartDate : str, kevEndDate : str) -> dict[str, Any] | None :
+    """
+    The CVE by date API is used to retrieve information on a single CVE or a collection of CVE from the NVD based on the date.
+    """
+    url = f"{BASE_URL}/cves/2.0"
+
+    # validate
+    if kevStartDate is None and kevEndDate is None:
+        logging.error("Both kevStartDate and kevEndDate are required when filtering by date.")
+        raise ValueError("Both kevStartDate and kevEndDate are required when filtering by date.")
+
+    if kevStartDate is not None and not validate.is_valid_date(kevStartDate):
+        logging.error("Invalid kevStartDate format. Expected ISO-8601.")
+        raise ValueError("Invalid kevStartDate format. Expected ISO-8601.")
+
+    if kevEndDate is not None and not validate.is_valid_date(kevEndDate):
+        logging.error("Invalid kevEndDate format. Expected ISO-8601.")
+        raise ValueError("Invalid kevEndDate format. Expected ISO-8601.")
+
+    params = {
+        "kevStartDate": kevStartDate,
+        "kevEndDate": kevEndDate,
+    }
+
+    data = await requests.make_get_request_with_params_for_nist(url, params, API_KEY)
+    
+    if data["error"]:
+        logging.error("No data received")
+    
+    logging.info(f"return: {data}")
+
+    return data
+
+@mcp.tool()
 async def CVE_Change_History(changeStartDate : str | None = None, changeEndDate : str | None = None, cveId : str | None = None, eventName : str | None = None, resultsPerPage : int | None = None, startIndex : int | None = None) -> dict[str, Any]:
     """
     he CVE Change History API is used to easily retrieve information on changes made to a single CVE or a collection of CVE from the NVD. This API provides additional transparency to the work of the NVD, allowing users to easily monitor when and why vulnerabilities change.
@@ -436,7 +412,7 @@ async def CVE_Change_History(changeStartDate : str | None = None, changeEndDate 
         logging.error("Invalid changeEndDate format. Expected ISO-8601.")
         raise ValueError("Invalid changeEndDate format. Expected ISO-8601.")
 
-    if cveId is not None and not validate.is_valid_cve_id(cveId):
+    if cveId is not None and not validate.is_valid_cve(cveId):
         logging.error("Invalid cveId format. Expected CVE-YYYY-NNNN.")
         raise ValueError("Invalid cveId format. Expected CVE-YYYY-NNNN.")
 

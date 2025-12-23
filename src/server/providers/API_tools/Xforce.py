@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import os
 import logging
 import utils.validate as validate
+import utils.requests as requests
 
 class InvalidURLException(Exception):
     pass
@@ -46,205 +47,6 @@ if not API_KEY:
     raise RuntimeError("Missing XFORCE_API_KEY")
 
 # ------------------------
-# Helper Request Functions
-# ------------------------
-
-# Helper function to make requests to Xforce API
-async def make_get_request(url: str) -> dict[str, Any]:
-    headers = {
-        "x-apikey": API_KEY,
-    }
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-
-async def make_get_request_with_params(url : str, params : dict[str , Any]) -> dict[str, Any] | None :
-    headers = {
-        "x-apikey": API_KEY,
-    }
-
-    url += "?"
-    for key, value in params.items():
-        url += f"{key}={value}&"
-
-    url = url[:-1]  
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-async def make_get_request_with_headers(url: str, headers: dict[str, Any]) -> dict[str, Any]:
-    headers["x-apikey"] = API_KEY
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-async def make_get_request_with_headers_and_params(url: str, headers: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
-    headers["x-apikey"] = API_KEY
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url, headers=headers, params=params, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-
-async def make_post_request(url : str) -> dict[str, Any] | None :
-    headers = {
-        "x-apikey": API_KEY,
-    }
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.post(url, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        
-async def make_post_request_with_params(url : str, body : dict[str, Any]) -> dict[str, Any] | None :
-    headers = {
-        "x-apikey": API_KEY,
-    }
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.post(url, headers=headers, json=body, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-        except httpx.HTTPStatusError as e:
-            logging.error(f"Error response {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-async def make_post_request_form(url: str, form: dict[str, Any]) -> dict[str, Any]:
-    headers = {
-        "x-apikey": API_KEY,
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.post(url, headers=headers, data=form, timeout=30.0)
-            resp.raise_for_status()
-            data = resp.json()
-            return {
-                "data": data,
-                "error": None,
-            }
-
-        except httpx.HTTPStatusError as e:
-            logging.error(f"HTTP error {e.response.status_code} while requesting {e.request.url!r}.")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-        except httpx.RequestError as e:
-            logging.error(f"Request error while requesting {url!r}: {e}")
-            return {
-                "data": None,
-                "error": str(e),
-            }
-
-
-# ------------------------
 # Tools
 # ------------------------
 
@@ -260,7 +62,7 @@ async def Get_Collection_by_ID(collectionID : str) -> dict[str, Any] | None :
     Returns details for a given Collection.
     """
     url = f"{BASE_URL}/casefiles/{collectionID}"
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -276,7 +78,7 @@ async def Get_Collection_as_STIX_Markup(collectionID : str) -> dict[str, Any] | 
     Returns a STIX representation of a Collection with Attachments
     """
     url = f"{BASE_URL}/casefiles/{collectionID}/stix"
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -292,7 +94,7 @@ async def Get_latest_public_Collections() -> dict[str, Any] | None :
     Gets latest public Collections that you are able to see. Returns a list of publicly accessible Collections.
     """
     url = f"{BASE_URL}/casefiles/public"
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -316,7 +118,7 @@ async def Get_public_Collections_using_pagination(limit : int | None = None, ski
     # Remove None values from params
     params = {k: v for k, v in params.items() if v}
     
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -332,7 +134,7 @@ async def Get_shared_Collections() -> dict[str, Any] | None :
     Returns a list of all shared Collections.
     """
     url = f"{BASE_URL}/casefiles/shared"
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -348,7 +150,7 @@ async def Get_Collections_by_Group_ID(groupID : str) -> dict[str, Any] | None :
     Returns a list of all Collections by Group ID.
     """
     url = f"{BASE_URL}/casefiles/group/{groupID}"
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -367,7 +169,7 @@ async def Search_public_Collections(query : str) -> dict[str, Any] | None :
     params = {
         "q": query,
     }
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -382,7 +184,7 @@ async def Get_linked_Collections(collectionID : str) -> dict[str, Any] | None :
     Gets all linked Collections that you are able to see for the specified Collection.
     """
     url = f"{BASE_URL}/casefiles/{collectionID}/linkedcasefiles"
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -405,7 +207,7 @@ async def Get_Attachments(casefileid : str, limit : int | None = None, skip : in
     # Remove None values from params
     params = {k: v for k, v in params.items() if v}
     
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -420,7 +222,7 @@ async def Get_Attachment_by_ID(casefileid : str, attachmentid : str) -> dict[str
     Get a specific attachment for a specified Collection.
     """
     url = f"{BASE_URL}/casefiles/{casefileid}/attachments/{attachmentid}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -435,7 +237,7 @@ async def Get_file_attachment(casefileid : str, attachmentid : str, filename : s
     Get a file attachment for a specified Collection by ID.
     """
     url = f"{BASE_URL}/casefiles/{casefileid}/attachments/{attachmentid}/{filename}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -456,9 +258,9 @@ async def get_DNS_records(input : str) -> dict[str, Any] | None :
 
     if not validate.is_valid_ip(input) and not validate.is_valid_domain(input) and not validate.is_valid_url(input):
         logging.error("Invalid input")
-        raise ValueError("Invalid input")
+        raise ValueError("Invalid input - must be a valid IP, domain or URL")
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -491,7 +293,7 @@ async def Get_early_warning_feed(startDate : str | None = None, endDate : str | 
     # Remove None values from params
     params = {k: v for k, v in params.items() if v}
 
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -508,7 +310,7 @@ async def Get_all_App_Profiles() -> dict[str, Any] | None :
     Returns list of all Internet Application Profiles (IAP).
     """
     url = f"{BASE_URL}/app/"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -529,7 +331,7 @@ async def Search_App_Profiles(query : str) -> dict[str, Any] | None :
         "q": query,
     }
 
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -544,7 +346,7 @@ async def Get_App_Profile_by_Name(appName : str) -> dict[str, Any] | None :
     Returns a specific Internet Application Profile (IAP).
     """
     url = f"{BASE_URL}/app/{appName}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -568,7 +370,7 @@ async def Get_IPs_by_Category(category : str, startDate : str, endDate : str, de
 
     if not descanding in ["true", "false"]:
         logging.error("Invalid descanding")
-        raise ValueError("Invalid descanding")
+        raise ValueError("Invalid descanding - must be true or false")
     
     params = {
         "category": category,
@@ -582,7 +384,7 @@ async def Get_IPs_by_Category(category : str, startDate : str, endDate : str, de
     # Remove None values from params
     params = {k: v for k, v in params.items() if v}
 
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -601,7 +403,7 @@ async def Get_IP_Report(ip : str) -> dict[str, Any] | None :
         raise ValueError("Invalid IP")
 
     url = f"{BASE_URL}/ipr/{ip}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -620,7 +422,7 @@ async def Get_IP_Reputation(ip : str) -> dict[str, Any] | None :
         raise ValueError("Invalid IP")
     
     url = f"{BASE_URL}/ipr/history/{ip}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -639,7 +441,7 @@ async def Get_Malware_for_IP(ip : str) -> dict[str, Any] | None :
         raise ValueError("Invalid IP")
     
     url = f"{BASE_URL}/ipr/history/{ip}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -658,7 +460,7 @@ async def Get_networks_for_ASN(asn : str) -> dict[str, Any] | None :
         raise ValueError("Invalid ASN")
     
     url = f"{BASE_URL}/ipr/asn/{asn}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -683,7 +485,7 @@ async def Get_IP_Reputation_updates(category : str, pull_id : int | None = None)
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -698,7 +500,7 @@ async def Get_IPR_category_list() -> dict[str, Any] | None :
     Returns a list of all IPR categories.
     """
     url = f"{BASE_URL}/ipr/categories"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -715,7 +517,7 @@ async def Get_Malware_for_File_Hash(filehash : str) -> dict[str, Any] | None :
     Returns the malware for a specific file hash.
     """
     url = f"{BASE_URL}/malware/{filehash}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -730,7 +532,7 @@ async def Get_Malware_for_Family(family : str) -> dict[str, Any] | None :
     Returns the malware for a specific family.
     """
     url = f"{BASE_URL}/malware/family/{family}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -745,7 +547,7 @@ async def Wildcard_search_malware_family(family : str) -> dict[str, Any] | None 
     Returns the malware for a specific family.
     """
     url = f"{BASE_URL}/malware/familytext/{family}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -763,7 +565,7 @@ async def Get_PAM_signature(input : str) -> dict[str, Any] | None :
     input - pamid \ pam name
     """
     url = f"{BASE_URL}/signatures/{input}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -786,7 +588,7 @@ async def Search_Signatures(query : str) -> dict[str, Any] | None :
     # Remove None values from params
     params = {k: v for k, v in params.items() if v}
     
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -801,7 +603,7 @@ async def Get_by_XPU(xpu : str) -> dict[str, Any] | None :
     Returns the signature for a specific signature.
     """
     url = f"{BASE_URL}/signatures/xpu/{xpu}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -816,7 +618,7 @@ async def Get_list_of_all_XPUs() -> dict[str, Any] | None :
     Returns the signature for a specific signature.
     """
     url = f"{BASE_URL}/signatures/xpu/directory"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -833,7 +635,7 @@ async def Get_an_object_in_STIX_format(stixversion : str, object : str, type : s
     Returns the signature for a specific signature.
     """
     url = f"{BASE_URL}/stix/v2/export/{stixversion}/{object}/{type}/{fullReport}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -856,7 +658,7 @@ async def Get_botnets_information_in_STIX_format(fullReport : bool | None = None
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -871,7 +673,7 @@ async def Get_a_TIS_object_in_STIX_format(stixversion : str, object : str, type 
     Returns the signature for a specific signature.
     """
     url = f"{BASE_URL}/stix/v2/tis-export/{stixversion}/{object}/{type}"   
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -892,7 +694,7 @@ async def Tag_Search(query : str) -> dict[str, Any] | None :
         "q": query,
     }
 
-    data = await make_get_request_with_params(url, params)
+    data = await requests.make_get_request_with_params(url, params, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -914,7 +716,7 @@ async def Get_API_Root_information(UserAgent : str | None = None) -> dict[str, A
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
         data = await make_get_request(url)
 
@@ -936,9 +738,9 @@ async def Get_Server_Discovery_Resource(UserAgent : str | None = None) -> dict[s
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -958,9 +760,9 @@ async def Get_Collections(UserAgent : str | None = None) -> dict[str, Any] | Non
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -980,9 +782,9 @@ async def Get_Collections_by_ID(collection_id : str, UserAgent : str | None = No
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1014,9 +816,9 @@ async def Get_Objects_by_Collection_ID(collection_id : str, added_after : str | 
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers_and_params(url, headers, query)
+        data = await requests.make_get_request_with_headers_and_params(url, headers, query, API_KEY)
     else :
-        data = await make_get_request_with_params(url, query)
+        data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1036,9 +838,9 @@ async def Get_Object_by_Object_ID(collectionID : str, object_id : str, UserAgent
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1058,9 +860,9 @@ async def Get_object_version_by_object_ID(collectionID : str, object_id : str, U
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1092,9 +894,9 @@ async def Get_manifest_by_collectionID(collectionID : str, added_after : str | N
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers_and_params(url, headers, query)
+        data = await requests.make_get_request_with_headers_and_params(url, headers, query, API_KEY)
     else :
-        data = await make_get_request_with_params(url, query)
+        data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1128,7 +930,7 @@ async def Get_URLs_by_Category(category : str, startDate : str | None = None, en
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1148,7 +950,7 @@ async def Gte_URL_Report(url : str) -> dict[str, Any] | None :
 
     url = f"{BASE_URL}/url/{url}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1168,7 +970,7 @@ async def Get_URL_History(url : str) -> dict[str, Any] | None :
 
     url = f"{BASE_URL}/url/history/{url}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1188,7 +990,7 @@ async def Get_Malware_for_URL(url : str) -> dict[str, Any] | None :
 
     url = f"{BASE_URL}/url/malware/{url}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1213,7 +1015,7 @@ async def Get_URL_Updates(category : str, pull_id : int | None = None) -> dict[s
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1229,7 +1031,7 @@ async def Get_URL_category_list() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/url/categories"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1254,15 +1056,15 @@ async def Get_Recent_Vulnerabilities(startDate : str | None = None, endDate : st
 
     if limit is not None and not isinstance(limit, int) :
         logging.error("Invalid limit format")
-        raise ValueError("Invalid limit format")
+        raise ValueError("Invalid type - required int , received {type(limit)}")
 
     if skip is not None and not isinstance(skip, int) :
         logging.error("Invalid skip format")
-        raise ValueError("Invalid skip format")
+        raise ValueError("Invalid type - required int , received {type(skip)}")
 
     if descending is not "true" and descending is not "false" and descending is not None :
         logging.error("Invalid descending format")
-        raise ValueError("Invalid descending format")
+        raise ValueError("Invalid descending value, must be 'true' or 'false'")
 
     query = {
         "startDate": startDate,
@@ -1275,7 +1077,7 @@ async def Get_Recent_Vulnerabilities(startDate : str | None = None, endDate : st
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1297,15 +1099,15 @@ async def Get_updated_Vulnerabilities(startDate : str | None = None, endDate : s
 
     if limit is not None and not isinstance(limit, int) :
         logging.error("Invalid limit format")
-        raise ValueError("Invalid limit format")
+        raise ValueError("Invalid type - required int , received {type(limit)}")
 
     if skip is not None and not isinstance(skip, int) :
         logging.error("Invalid skip format")
-        raise ValueError("Invalid skip format")
+        raise ValueError("Invalid type - required int , received {type(skip)}")
 
     if descending is not "true" and descending is not "false" and descending is not None :
         logging.error("Invalid descending format")
-        raise ValueError("Invalid descending format")
+        raise ValueError("Invalid descending value, must be 'true' or 'false'")
 
     query = {
         "startDate": startDate,
@@ -1318,7 +1120,7 @@ async def Get_updated_Vulnerabilities(startDate : str | None = None, endDate : s
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1348,7 +1150,7 @@ async def Search_Vulnerabilities(q : str, startDate : str | None = None, endDate
     # Remove None values from params
     query = {k: v for k, v in query.items() if v}
 
-    data = await make_get_request_with_params(url, query)
+    data = await requests.make_get_request_with_params(url, query, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1364,7 +1166,7 @@ async def Get_by_XFID(xfid : str) -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/vulnerabilities/{xfid}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1380,7 +1182,7 @@ async def Get_by_STDCODE(stdcode : str) -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/vulnerabilities/{stdcode}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1396,7 +1198,7 @@ async def Get_by_Microsoft_Security_Bulletein_ID(msid : str) -> dict[str, Any] |
     """
     url = f"{BASE_URL}/vulnerabilities/{msid}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1414,7 +1216,7 @@ async def Get_WHOIS_Information(host : str) -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/whois/{host}"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1433,7 +1235,7 @@ async def Anonymization_Services_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/anonsvcs/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1449,7 +1251,7 @@ async def Anonymization_Services_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/anonsvcs/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1465,7 +1267,7 @@ async def Anonymization_Services_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/anonsvcs/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1481,7 +1283,7 @@ async def Botnet_CnC_Servers_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/c2server/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1497,7 +1299,7 @@ async def Botnet_CnC_Servers_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/c2server/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1513,7 +1315,7 @@ async def Botnet_CnC_Servers_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/c2server/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1529,7 +1331,7 @@ async def Bots_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/bots/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1545,7 +1347,7 @@ async def Bots_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/bots/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1561,7 +1363,7 @@ async def Cryptocurrency_mining_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/cryptomining/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1577,7 +1379,7 @@ async def Cryptocurrency_mining_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/cryptomining/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1593,7 +1395,7 @@ async def Cryptocurrency_mining_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/cryptomining/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1609,7 +1411,7 @@ async def Early_Warning_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/ew/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1625,7 +1427,7 @@ async def Malware_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/mw/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1641,7 +1443,7 @@ async def Malware_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/mw/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1657,7 +1459,7 @@ async def Malware_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/mw/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1673,7 +1475,7 @@ async def Phishing_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/phishing/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1689,7 +1491,7 @@ async def Scanning_IPs_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/scanning/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1705,7 +1507,7 @@ async def Scanning_IPs_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/scanning/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1721,7 +1523,7 @@ async def Top_Activity_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/topact/url/10k"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1737,7 +1539,7 @@ async def Benign_IPv4() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/benign/ipv4"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1753,7 +1555,7 @@ async def Benign_IPv6() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/benign/ipv6"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1769,7 +1571,7 @@ async def Benign_URL() -> dict[str, Any] | None :
     """
     url = f"{BASE_URL}/xfti/benign/url"
 
-    data = await make_get_request(url)
+    data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1791,9 +1593,9 @@ async def Get_API_Root_information(UserAgent : str | None = None) -> dict[str, A
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1813,9 +1615,9 @@ async def Get_Collections(UserAgent : str | None = None) -> dict[str, Any] | Non
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1835,9 +1637,9 @@ async def Collection_metadata(CollectionID : str, UserAgent : str | None = None)
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")
@@ -1857,9 +1659,9 @@ async def Collection_objects(CollectionID : str, UserAgent : str | None = None) 
         headers = {
             "User-Agent": UserAgent,
         }
-        data = await make_get_request_with_headers(url, headers)
+        data = await requests.make_get_request_with_headers(url, headers, API_KEY)
     else :
-        data = await make_get_request(url)
+        data = await requests.make_get_request(url, API_KEY)
 
     if data["error"]:
         logging.error("No data received")

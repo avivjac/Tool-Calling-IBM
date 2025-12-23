@@ -170,3 +170,49 @@ def is_valid_asn(asn: str) -> bool:
     except ValueError:
         logger.error(f"Invalid ASN: {asn}")
         return False
+
+# def is_valid_url_identifier(identifier: str) -> bool:
+#   """
+#     Validates if a string is a valid VirusTotal URL identifier.
+#     A valid identifier is EITHER:
+#     1. A 64-character hex string (SHA-256 hash).
+#     2. An unpadded base64url encoded string (RFC 4648 sec 3.2).
+#     """
+#     if identifier is None or not isinstance(identifier, str):
+#         return False
+
+#     # --- Check 1: SHA-256 Hex String ---
+#     # Check length is exactly 64 and contains only hex characters.
+#     if len(identifier) == 64 and re.fullmatch(r'[a-fA-F0-9]{64}', identifier):
+#         return True
+
+#     # --- Check 2: Unpadded base64url string ---
+#     # 1. Check for forbidden characters (padding '=' is not allowed in unpadded input)
+#     if '=' in identifier:
+#         logging.warning(f"URL identifier validation failed: Found padding '=' in identifier: {identifier}")
+#         return False
+       
+#     # 2. Check allowed characters for base64url (A-Z, a-z, 0-9, -, _)
+#     if not re.fullmatch(r'[a-zA-Z0-9_-]+', identifier):
+#          # If it failed SHA256 check AND has invalid base64 chars, it's invalid.
+#         logging.warning(f"URL identifier validation failed: Invalid characters in identifier: {identifier}")
+#         return False
+
+#     # 3. Try to decode.
+#     # Standard base64 decoders require padding. We must re-add padding temporarily to test decoding.
+#     try:
+#         padding_needed = len(identifier) % 4
+#         if padding_needed > 0:
+#             padded_identifier = identifier + '=' * (4 - padding_needed)
+#         else:
+#             padded_identifier = identifier
+           
+#         # Try decoding using the urlsafe alphabet
+#         base64.urlsafe_b64decode(padded_identifier)
+       
+#         # If decoding succeeded, it's a valid base64url string ready for VT
+#         return True
+       
+#     except (binascii.Error, ValueError):
+#         logging.warning(f"URL identifier validation failed: Could not decode base64 string: {identifier}")
+#         return False
