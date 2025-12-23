@@ -314,7 +314,7 @@ async def Get_public_Collections_using_pagination(limit : int | None = None, ski
     }
 
     # Remove None values from params
-    params = {k: v for k, v in params.items() if v is not None}
+    params = {k: v for k, v in params.items() if v}
     
     data = await make_get_request_with_params(url, params)
 
@@ -403,7 +403,7 @@ async def Get_Attachments(casefileid : str, limit : int | None = None, skip : in
     }
     
     # Remove None values from params
-    params = {k: v for k, v in params.items() if v is not None}
+    params = {k: v for k, v in params.items() if v}
     
     data = await make_get_request_with_params(url, params)
 
@@ -489,7 +489,7 @@ async def Get_early_warning_feed(startDate : str | None = None, endDate : str | 
     }
 
     # Remove None values from params
-    params = {k: v for k, v in params.items() if v is not None}
+    params = {k: v for k, v in params.items() if v}
 
     data = await make_get_request_with_params(url, params)
 
@@ -580,7 +580,7 @@ async def Get_IPs_by_Category(category : str, startDate : str, endDate : str, de
     }
 
     # Remove None values from params
-    params = {k: v for k, v in params.items() if v is not None}
+    params = {k: v for k, v in params.items() if v}
 
     data = await make_get_request_with_params(url, params)
 
@@ -681,7 +681,7 @@ async def Get_IP_Reputation_updates(category : str, pull_id : int | None = None)
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
@@ -784,7 +784,7 @@ async def Search_Signatures(query : str) -> dict[str, Any] | None :
     }
 
     # Remove None values from params
-    params = {k: v for k, v in params.items() if v is not None}
+    params = {k: v for k, v in params.items() if v}
     
     data = await make_get_request_with_params(url, params)
 
@@ -854,7 +854,7 @@ async def Get_botnets_information_in_STIX_format(fullReport : bool | None = None
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
@@ -1008,7 +1008,7 @@ async def Get_Objects_by_Collection_ID(collection_id : str, added_after : str | 
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     if UserAgent :
         headers = {
@@ -1086,7 +1086,7 @@ async def Get_manifest_by_collectionID(collectionID : str, added_after : str | N
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     if UserAgent :
         headers = {
@@ -1126,7 +1126,7 @@ async def Get_URLs_by_Category(category : str, startDate : str | None = None, en
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
@@ -1211,7 +1211,7 @@ async def Get_URL_Updates(category : str, pull_id : int | None = None) -> dict[s
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
@@ -1273,7 +1273,7 @@ async def Get_Recent_Vulnerabilities(startDate : str | None = None, endDate : st
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
@@ -1316,7 +1316,7 @@ async def Get_updated_Vulnerabilities(startDate : str | None = None, endDate : s
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
@@ -1346,7 +1346,7 @@ async def Search_Vulnerabilities(q : str, startDate : str | None = None, endDate
     }
 
     # Remove None values from params
-    query = {k: v for k, v in query.items() if v is not None}
+    query = {k: v for k, v in query.items() if v}
 
     data = await make_get_request_with_params(url, query)
 
