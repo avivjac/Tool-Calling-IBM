@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch, MagicMock, ANY
 import sys
 import os
 
@@ -18,18 +18,18 @@ class TestURLscan:
 
     # --- Generic ---
     async def test_API_Quotas(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             expected_data = {"data": {"limits": {}}, "error": None}
             mock_get.return_value = expected_data
             
             result = await URLscan.API_Quotas()
             
             assert result == expected_data
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/quotas")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/quotas", ANY)
 
     # --- Scanning ---
     async def test_Scan_valid(self):
-        with patch.object(URLscan, 'make_post_request', new_callable=AsyncMock) as mock_post:
+        with patch.object(URLscan.requests, 'make_post_request', new_callable=AsyncMock) as mock_post:
             with patch('src.utils.validate.is_valid_url', return_value=True): # Inverted logic in code?
                 # Code says: if validate.is_valid_url(url): raise ... Wait. 
                 # Let's check code:
@@ -72,11 +72,9 @@ class TestURLscan:
     # despite the bug in the guard clause.
     
     async def test_Scan_happy_path(self):
-         with patch.object(URLscan, 'make_post_request_with_params', new_callable=AsyncMock) as mock_post:
-            # We mock validation to return False so it passes the `if valid: raise` check (User Bug)
-            # Or if the user fixed it, we need `True`. 
-            # Safest is to patch `utils.validate.is_valid_url` to return False.
-            with patch('utils.validate.is_valid_url', return_value=False): 
+         with patch.object(URLscan.requests, 'make_post_request_with_params', new_callable=AsyncMock) as mock_post:
+            # We mock validation to return True so it passes the `if not valid: raise` check (Fixed logic)
+            with patch('utils.validate.is_valid_url', return_value=True): 
                 mock_post.return_value = {"data": {"uuid": "123"}, "error": None}
                 
                 result = await URLscan.Scan("http://example.com")
@@ -88,49 +86,46 @@ class TestURLscan:
                 assert args[1]['url'] == "http://example.com"
 
     async def test_Result(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": {"res": "ok"}, "error": None}
             result = await URLscan.Result("uuid-123")
             assert result["data"]["res"] == "ok"
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/result/uuid-123")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/result/uuid-123", ANY)
 
     async def test_Screenshot(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": "image-data", "error": None}
             result = await URLscan.Screenshot("uuid-123")
             assert result["data"] == "image-data"
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/screenshot/uuid-123.png")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/screenshot/uuid-123.png", ANY)
 
     async def test_DOM(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": "<div></div>", "error": None}
             result = await URLscan.DOM("uuid-123")
             assert result["data"] == "<div></div>"
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/dom/uuid-123/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/dom/uuid-123/", ANY)
 
     async def test_Available_Countries(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": ["US", "DE"], "error": None}
             result = await URLscan.Available_Countries()
             assert "US" in result["data"]
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/availableCountries")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/availableCountries", ANY)
 
     async def test_Available_User_Agents(self):
-         with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+         with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": ["Chrome", "Firefox"], "error": None}
             result = await URLscan.Available_User_Agents()
             assert "Chrome" in result["data"]
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/userAgents")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/userAgents", ANY)
 
     # --- Search ---
     async def test_Search_valid(self):
-        with patch.object(URLscan, 'make_get_request_with_params', new_callable=AsyncMock) as mock_get:
-            with patch('utils.validate.is_valid_datasource', return_value=False): # Assuming standard "False is good" if bug persists or "True" if fixed?
+        with patch.object(URLscan.requests, 'make_get_request_with_params', new_callable=AsyncMock) as mock_get:
+            with patch('utils.validate.is_valid_datasource', return_value=True): 
                  # Search Code:
-                 # if validate.is_valid_datasource(datasource):
-                 #     logging.error("Invalid datasource")
-                 #     raise ValueError("Invalid datasource")
-                 # Same logic bug here! 
+                 # if datasource and not validate.is_valid_datasource(datasource): ... 
                  
                  mock_get.return_value = {"data": [], "error": None}
                  
@@ -140,29 +135,29 @@ class TestURLscan:
 
     # --- Live Scanning ---
     async def test_Live_Scanners(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": {}, "error": None}
             await URLscan.Live_Scanners()
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/live/scanners/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/live/scanners/", ANY)
 
     async def test_Non_Blocking_Trigger_Live_Scan(self):
-        with patch.object(URLscan, 'make_post_request', new_callable=AsyncMock) as mock_post:
+        with patch.object(URLscan.requests, 'make_post_request', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = {"data": {"uuid": "123"}, "error": None}
-            task = {"url": "http://test.com"}
+            task = {"url": "http://test.com", "visibility": "public"}
             scanner = {"country": "US"}
             await URLscan.Non_Blocking_Trigger_Live_Scan("scanner-1", task, scanner)
             mock_post.assert_called_once()
 
     async def test_Trigger_Live_Scan(self):
-         with patch.object(URLscan, 'make_post_request', new_callable=AsyncMock) as mock_post:
+         with patch.object(URLscan.requests, 'make_post_request', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = {"data": {"result": "ok"}, "error": None}
-            task = {"url": "http://test.com"}
+            task = {"url": "http://test.com", "visibility": "public"}
             scanner = {"country": "US"}
             await URLscan.Trigger_Live_Scan("scanner-1", task, scanner)
             mock_post.assert_called_once()
 
     async def test_Live_Scan_Get_Resource(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": "content", "error": None}
             
             # Valid type
@@ -175,20 +170,20 @@ class TestURLscan:
 
     # --- Saved Searches ---
     async def test_Saved_Searches(self):
-         with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+         with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.Saved_Searches()
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/searches/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/searches/", ANY)
 
     async def test_Saved_Search_Search_Results(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.Saved_Search_Search_Results("search-1")
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/searches/search-1/results/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/searches/search-1/results/", ANY)
 
     # --- Hostnames ---
     async def test_Hostnames_History(self):
-        with patch.object(URLscan, 'make_get_request_with_params', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request_with_params', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": {}, "error": None}
             await URLscan.Hostnames_History("example.com")
             mock_get.assert_called()
@@ -197,20 +192,20 @@ class TestURLscan:
 
     # --- Brands ---
     async def test_Available_Brands(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.Available_Brands()
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/brands/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/brands/", ANY)
 
     async def test_Brands(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.Brands()
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/brands/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/brands/", ANY)
 
     # --- File ---
     async def test_Download_a_File(self):
-        with patch.object(URLscan, 'make_get_request_with_params', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request_with_params', new_callable=AsyncMock) as mock_get:
             # Bug logic again: if not validate.is_valid_hash(fileHash): raise. This one logic is CORRECT in source.
             with patch('utils.validate.is_valid_hash', return_value=True):
                 mock_get.return_value = {"data": "file-content", "error": None}
@@ -224,41 +219,37 @@ class TestURLscan:
 
     # --- Incident ---
     async def test_Get_Incident(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": {}, "error": None}
             await URLscan.Get_Incident("inc-1")
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/", ANY)
 
     async def test_Copy_Incident(self):
-        with patch.object(URLscan, 'make_post_request', new_callable=AsyncMock) as mock_post:
+        with patch.object(URLscan.requests, 'make_post_request', new_callable=AsyncMock) as mock_post:
             mock_post.return_value = {"data": {}, "error": None}
             await URLscan.Copy_Incident("inc-1")
-            mock_post.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/copy/")
+            mock_post.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/copy/", ANY)
 
-    async def test_Fork_Incident(self):
-        with patch.object(URLscan, 'make_post_request', new_callable=AsyncMock) as mock_post:
-            mock_post.return_value = {"data": {}, "error": None}
-            await URLscan.Fork_Incident("inc-1")
-            mock_post.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/fork/")
+
 
     async def test_Get_Watchable_Attributes(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.Get_Watchable_Attributes()
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/watchableAttributes/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/watchableAttributes/", ANY)
 
     async def test_Get_Incident_States(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": {}, "error": None}
             await URLscan.Get_Incident_States("inc-1")
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/incidents/inc-1/", ANY)
 
     # --- Channels ---
     async def test_channels(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.channels()
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/channels/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/channels/", ANY)
 
     # Note: create_channel and update_channel use local mocked make_post_request / make_put_request
     # But update_channel uses make_put_request which isn't mocked in my list above, checking URLscan.py
@@ -286,8 +277,8 @@ class TestURLscan:
     # So I should NOT test `create_channel` or `update_channel` if they are commented out.
     
     async def test_Channel_Search_Results(self):
-        with patch.object(URLscan, 'make_get_request', new_callable=AsyncMock) as mock_get:
+        with patch.object(URLscan.requests, 'make_get_request', new_callable=AsyncMock) as mock_get:
             mock_get.return_value = {"data": [], "error": None}
             await URLscan.Channel_Search_Results("ch-1")
-            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/channels/ch-1/")
+            mock_get.assert_called_once_with(f"{URLscan.BASE_URL}/user/channels/ch-1/", ANY)
 

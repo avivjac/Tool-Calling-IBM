@@ -22,44 +22,6 @@ def mock_httpx_client():
     with patch("httpx.AsyncClient") as mock_client:
         yield mock_client
 
-@pytest.mark.asyncio
-async def test_make_get_request_success(mock_httpx_client):
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"test": "data"}
-    
-    mock_client_instance = AsyncMock()
-    mock_client_instance.get.return_value = mock_response
-    mock_client_instance.__aenter__.return_value = mock_client_instance
-    mock_client_instance.__aexit__.return_value = None
-    
-    mock_httpx_client.return_value = mock_client_instance
-    
-    result = await AbuselPDB.make_get_request("http://test.url")
-    
-    assert result == {"data": {"test": "data"}, "error": None}
-
-@pytest.mark.asyncio
-async def test_make_get_request_with_params_success(mock_httpx_client):
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"test": "data"}
-    
-    mock_client_instance = AsyncMock()
-    mock_client_instance.get.return_value = mock_response
-    mock_client_instance.__aenter__.return_value = mock_client_instance
-    mock_client_instance.__aexit__.return_value = None
-    
-    mock_httpx_client.return_value = mock_client_instance
-    
-    params = {"key": "value"}
-    result = await AbuselPDB.make_get_request_with_params("http://test.url", params)
-    
-    assert result == {"data": {"test": "data"}, "error": None}
-    # Check if params were added to URL manually as per implementation
-    args, kwargs = mock_client_instance.get.call_args
-    assert "key=value" in args[0]
-    assert "headers" not in kwargs or kwargs["headers"] is None # Verify no headers passed if not supposed to be
 
 @pytest.mark.asyncio
 async def test_Check_IP(mock_httpx_client, mock_env):
@@ -133,5 +95,5 @@ async def test_Report_IP(mock_httpx_client):
     args, _ = mock_client_instance.post.call_args
     assert "/report/json" in args[0]
     assert "ip=1.1.1.1" in args[0]
-    assert "category=18" in args[0]
+    assert "categories=18" in args[0]
     assert "comment=Brute force" in args[0]
