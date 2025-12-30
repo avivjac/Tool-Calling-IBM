@@ -93,6 +93,9 @@ async def Scan(url : str, visibility : str = "public", country : str | None = No
         "customagent": customagent
     }
 
+    # Remove None values from body
+    body = {k: v for k, v in body.items() if v}
+
     data = await requests.make_post_request_with_params(api_url, body, API_KEY)
 
     if data["error"]:
