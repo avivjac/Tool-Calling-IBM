@@ -277,9 +277,13 @@ async def Get_early_warning_feed(startDate : str | None = None, endDate : str | 
     Returns early warning data.
     """
 
-    if not validate.is_valid_date(startDate) and not validate.is_valid_date(endDate):
-        logging.error("Invalid date")
-        raise ValueError("Invalid date")
+    if startDate and not validate.is_valid_date(startDate):
+        logging.error("Invalid startDate")
+        raise ValueError("Invalid startDate")
+    
+    if endDate and not validate.is_valid_date(endDate):
+        logging.error("Invalid endDate")
+        raise ValueError("Invalid endDate")
     
     url = f"{BASE_URL}/url/host/early_warning"   
 
@@ -798,9 +802,13 @@ async def Get_Objects_by_Collection_ID(collection_id : str, added_after : str | 
     """
     Returns the signature for a specific signature.
     """
-    if not validate.is_valid_date(added_after) and not validate.is_valid_date(added_before):
-        logging.error("Invalid date")
-        raise ValueError("Invalid date")
+    if added_after and not validate.is_valid_date(added_after):
+        logging.error("Invalid added_after date")
+        raise ValueError("Invalid added_after date")
+        
+    if added_before and not validate.is_valid_date(added_before):
+        logging.error("Invalid added_before date")
+        raise ValueError("Invalid added_before date")
     
     url = f"{BASE_URL}/taxii2/collections/{collection_id}/objects" 
 
@@ -1050,9 +1058,13 @@ async def Get_Recent_Vulnerabilities(startDate : str | None = None, endDate : st
 
     url = f"{BASE_URL}/vulnerabilities/"
 
-    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
-        logging.error("Invalid date format")
-        raise ValueError("Invalid date format")
+    if startDate and not validate.is_valid_date(startDate):
+        logging.error("Invalid startDate")
+        raise ValueError("Invalid startDate")
+        
+    if endDate and not validate.is_valid_date(endDate):
+        logging.error("Invalid endDate")
+        raise ValueError("Invalid endDate")
 
     if limit is not None and not isinstance(limit, int) :
         logging.error("Invalid limit format")
@@ -1062,7 +1074,7 @@ async def Get_Recent_Vulnerabilities(startDate : str | None = None, endDate : st
         logging.error("Invalid skip format")
         raise ValueError("Invalid type - required int , received {type(skip)}")
 
-    if descending is not "true" and descending is not "false" and descending is not None :
+    if descending and descending != "true" and descending != "false":
         logging.error("Invalid descending format")
         raise ValueError("Invalid descending value, must be 'true' or 'false'")
 
@@ -1093,19 +1105,23 @@ async def Get_updated_Vulnerabilities(startDate : str | None = None, endDate : s
     """
     url = f"{BASE_URL}/vulnerabilities/change"
 
-    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
-        logging.error("Invalid date format")
-        raise ValueError("Invalid date format")
+    if startDate and not validate.is_valid_date(startDate):
+        logging.error("Invalid startDate")
+        raise ValueError("Invalid startDate")
+
+    if endDate and not validate.is_valid_date(endDate):
+        logging.error("Invalid endDate")
+        raise ValueError("Invalid endDate")
 
     if limit is not None and not isinstance(limit, int) :
         logging.error("Invalid limit format")
-        raise ValueError("Invalid type - required int , received {type(limit)}")
+        raise ValueError(f"Invalid type - required int , received {type(limit)}")
 
     if skip is not None and not isinstance(skip, int) :
         logging.error("Invalid skip format")
-        raise ValueError("Invalid type - required int , received {type(skip)}")
+        raise ValueError(f"Invalid type - required int , received {type(skip)}")
 
-    if descending is not "true" and descending is not "false" and descending is not None :
+    if descending and descending != "true" and descending != "false":
         logging.error("Invalid descending format")
         raise ValueError("Invalid descending value, must be 'true' or 'false'")
 
@@ -1136,9 +1152,13 @@ async def Search_Vulnerabilities(q : str, startDate : str | None = None, endDate
     """
     url = f"{BASE_URL}/vulnerabilities/fulltext"
 
-    if not validate.is_valid_date(startDate) or not validate.is_valid_date(endDate) :
-        logging.error("Invalid date format")
-        raise ValueError("Invalid date format")
+    if startDate and not validate.is_valid_date(startDate):
+        logging.error("Invalid startDate")
+        raise ValueError("Invalid startDate")
+
+    if endDate and not validate.is_valid_date(endDate):
+        logging.error("Invalid endDate")
+        raise ValueError("Invalid endDate")
 
     query = {
         "q": q,
