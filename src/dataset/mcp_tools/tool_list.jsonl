@@ -1,0 +1,8 @@
+{
+  "custom_instructions": "",
+  "enable_thinking": false,
+  "python_tools": [],
+  "xml_tools": [
+    "<tools>\n[{'type': 'function', 'function': {'name': 'Get_an_IP_address_report', 'description': 'Returns an IP address object.', 'parameters': {'type': 'string', 'properties': {'IP': {'type': 'string', 'description': 'IP address'}}}, 'required': ['IP']}}}, {'type': 'function', 'function': {'name': 'Get_a_URL_report', 'description': 'See [URL identifiers](ref:url#url-identifiers) from more information about how to generate a valid URL identifier for a URL. Returns a URL object.', 'parameters': {'type': 'string', 'properties': {'url_id': {'type': 'string', 'description': 'URL identifier or base64 representation of URL to scan (w/o padding)'}}, 'required': ['url_id']}}}, {'type': 'function', 'function': {'name': 'Get_a_domain_report', 'description': 'Returns a Domain object.', 'parameters': {'type': 'string', 'properties': {'domain': {'type': 'string', 'description': 'Domain name'}}, 'required': ['domain']}}}, {'type': 'function', 'function': {'name': 'Get_an_attack_tactic_object', 'description': 'Get an attack tactic object', 'parameters': {'type': 'string', 'properties': {'ID': {'type': 'string', 'description': 'Attack tactic's ID'}}, 'required': ['ID']}}}, {'type': 'function', 'function': {'name': 'Get_an_attack_technique_object', 'description': 'Get an attack technique object', 'parameters': {'type': 'string', 'properties': {'ID': {'type': 'string', 'description': 'Attack technique's ID'}}, 'required': ['ID']}}}]\n</tools>"
+  ]
+}
