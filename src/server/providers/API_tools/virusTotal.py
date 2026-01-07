@@ -57,7 +57,7 @@ async def Get_an_IP_address_report(IP : str) -> dict[str, Any] | None :
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -76,7 +76,7 @@ async def Request_an_IP_address_rescan(IP : str) -> dict[str, Any] | None :
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -99,7 +99,7 @@ async def Get_comments_on_an_IP_address(IP : str, limit : int | None = 10, curso
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -125,7 +125,7 @@ async def Get_objects_related_to_an_IP_address(IP : str, relationship : str, lim
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -143,7 +143,7 @@ async def Get_object_descriptors_related_to_an_IP_address(IP : str, relationship
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -161,7 +161,7 @@ async def Get_votes_on_an_IP_address(IP : str) -> dict[str, Any] | None :
 
     if data["error"]:
         logging.error(f"Error in VT IP report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -184,7 +184,7 @@ async def Get_a_domain_report(domain: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -202,7 +202,7 @@ async def Request_an_domain_rescan(domain: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -225,7 +225,7 @@ async def Get_comments_on_a_domain(domain: str, limit: int | None = 10, cursor: 
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -249,7 +249,7 @@ async def Get_objects_related_to_a_domain(domain: str, relationship: str, limit:
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -272,7 +272,7 @@ async def Get_object_descriptors_related_to_a_domain(domain: str, relationship: 
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -290,7 +290,7 @@ async def Get_a_DNS_resolution_object(domain: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -308,7 +308,7 @@ async def Get_votes_on_a_domain(domain: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in Domain report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -337,7 +337,7 @@ async def Upload_a_file(file_path: str, password: str | None = None) -> dict[str
     data = await requests.make_post_request_with_params(url, body, API_KEY)
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -352,7 +352,7 @@ async def Get_a_URL_for_uploading_large_files() -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -367,7 +367,7 @@ async def Get_a_file_report(file_id: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -383,7 +383,7 @@ async def Request_a_file_rescan(file_id: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -403,7 +403,7 @@ async def Get_comments_on_a_file(file_id: str, limit: int | None = 10, cursor: s
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -424,7 +424,7 @@ async def Get_objects_related_to_a_file(file_id: str, relationship: str, limit: 
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -439,7 +439,7 @@ async def Get_object_descriptors_related_to_a_file(file_id: str, relationship: s
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -454,7 +454,7 @@ async def Get_a_crowdsourced_Sigma_rule_object(rule_id: str) -> dict[str, Any] |
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -468,7 +468,7 @@ async def Get_a_crowdsourced_YARA_ruleset(ruleset_id: str) -> dict[str, Any] | N
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -488,7 +488,7 @@ async def Get_votes_on_a_file(file_id: str, limit: int | None = 10, cursor: str 
 
     if data["error"]:
         logging.error(f"Error in VT File report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -505,7 +505,7 @@ async def Get_a_summary_of_all_behavior_reports_for_a_file(file_id: str) -> dict
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -520,7 +520,7 @@ async def Get_a_summary_of_all_MITRE_ATTACK_techniques_observed_in_a_file(file_i
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -534,7 +534,7 @@ async def Get_all_behavior_reports_for_a_file(file_id: str) -> dict[str, Any] | 
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -548,7 +548,7 @@ async def Get_a_file_behaviour_report_from_a_sandbox(sandbox_id: str) -> dict[st
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -566,7 +566,7 @@ async def Get_objects_related_to_a_behaviour_report(sandbox_id: str, relationshi
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -585,7 +585,7 @@ async def Get_object_descriptors_related_to_a_behaviour_report(sandbox_id: str, 
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -599,7 +599,7 @@ async def Get_a_detailed_HTML_behaviour_report(sandbox_id: str) -> dict[str, Any
 
     if data["error"]:
         logging.error(f"Error in VT File Behaviours report: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
@@ -624,128 +624,209 @@ async def Scan_URL(url: str) -> dict[str, Any] | None:
 
     if data["error"]:
         logging.error(f"Error in VT URL scan: {data['error']}")
-    logging.info("return: {data}")
+    logging.info(f"return: {data}")
     return data
 
 
+
+import base64
+
+def vt_url_id_from_url(raw_url: str) -> str:
+    """
+    Convert a URL to a VirusTotal URL identifier
+    (base64-url without '=' padding)
+    """
+    return base64.urlsafe_b64encode(
+        raw_url.encode("utf-8")
+    ).decode("ascii").rstrip("=")
+
+
+
 @mcp.tool()
-async def Get_a_URL_report(url_id: str) -> dict[str, Any] | None:
+async def Get_a_URL_report(url_or_id: str) -> dict[str, Any] | None:
     """
-    Get a URL analysis report.
-    Example url_id: a hash returned from Scan_URL
+    Get a URL report from VirusTotal.
+
+    Accepts:
+    - Full URL (e.g. https://www.google.com)
+    - VirusTotal URL identifier (SHA-256 or base64-url unpadded)
     """
+    if validate.is_valid_url(url_or_id):
+        url_id = vt_url_id_from_url(url_or_id)
+    else:
+        url_id = url_or_id
+
     if not validate.is_valid_url_identifier(url_id):
-        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+        raise InvalidURLError(f"The URL identifier '{url_id}' is not valid.")
 
-    url = f"{BASE_URL}/urls/{url_id}"
-    data = await requests.make_get_request(url, API_KEY)
+    endpoint = f"{BASE_URL}/urls/{url_id}"
+    data = await requests.make_get_request(endpoint, API_KEY)
 
-    if data["error"]:
-        logging.error(f"Error in VT URL report: {data['error']}")
-    logging.info("return: {data}")
+    err = data.get("error")
+    if err:
+        logging.error(f"Error in VT URL report: {err}")
+
+    logging.info(f"return: {data}")
     return data
 
 
 @mcp.tool()
-async def Request_a_URL_rescan(url_id: str) -> dict[str, Any] | None:
+async def Request_a_URL_rescan(url_or_id: str) -> dict[str, Any] | None:
     """
     Request a rescan (re-analysis) for a URL.
+    Accepts full URL or URL identifier.
     """
+    if validate.is_valid_url(url_or_id):
+        url_id = vt_url_id_from_url(url_or_id)
+    else:
+        url_id = url_or_id
+
     if not validate.is_valid_url_identifier(url_id):
-        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+        raise InvalidURLError(f"The URL ID '{url_id}' is not valid.")
 
     endpoint = f"{BASE_URL}/urls/{url_id}/analyse"
     data = await requests.make_post_request(endpoint, API_KEY)
 
-    if data["error"]:
-        logging.error(f"Error in VT URL rescan: {data['error']}")
-    logging.info("return: {data}")
+    err = data.get("error")
+    if err:
+        logging.error(f"Error in VT URL rescan: {err}")
+
+    logging.info(f"return: {data}")
     return data
 
 
 @mcp.tool()
-async def Get_comments_on_a_URL(url_id: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+async def Get_comments_on_a_URL(
+    url_or_id: str,
+    limit: int | None = 10,
+    cursor: str | None = None
+) -> dict[str, Any] | None:
     """
     Get comments for a URL.
     """
+    if validate.is_valid_url(url_or_id):
+        url_id = vt_url_id_from_url(url_or_id)
+    else:
+        url_id = url_or_id
+
     if not validate.is_valid_url_identifier(url_id):
-        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+        raise InvalidURLError(f"The URL ID '{url_id}' is not valid.")
 
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
-    url = f"{BASE_URL}/urls/{url_id}/comments"
-    data = await requests.make_get_request_with_params(url, params, API_KEY)
+    endpoint = f"{BASE_URL}/urls/{url_id}/comments"
+    data = await requests.make_get_request_with_params(endpoint, params, API_KEY)
 
-    if data["error"]:
-        logging.error(f"Error fetching VT URL comments: {data['error']}")
-    logging.info("return: {data}")
+    err = data.get("error")
+    if err:
+        logging.error(f"Error fetching VT URL comments: {err}")
+
+    logging.info(f"return: {data}")
     return data
 
 
 
 @mcp.tool()
-async def Get_objects_related_to_a_URL(url_id: str, relationship: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+async def Get_objects_related_to_a_URL(
+    url_or_id: str,
+    relationship: str,
+    limit: int | None = 10,
+    cursor: str | None = None
+) -> dict[str, Any] | None:
     """
     Get objects related to a URL.
     """
+    if validate.is_valid_url(url_or_id):
+        url_id = vt_url_id_from_url(url_or_id)
+    else:
+        url_id = url_or_id
+
     if not validate.is_valid_url_identifier(url_id):
-        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+        raise InvalidURLError(f"The URL ID '{url_id}' is not valid.")
 
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
-    url = f"{BASE_URL}/urls/{url_id}/{relationship}"
-    data = await requests.make_get_request_with_params(url, params, API_KEY)
+    endpoint = f"{BASE_URL}/urls/{url_id}/{relationship}"
+    data = await requests.make_get_request_with_params(endpoint, params, API_KEY)
 
-    if data["error"]:
-        logging.error(f"Error fetching related VT URL objects: {data['error']}")
-    logging.info("return: {data}")
+    err = data.get("error")
+    if err:
+        logging.error(f"Error fetching related VT URL objects: {err}")
+
+    logging.info(f"return: {data}")
     return data
 
 
+
 @mcp.tool()
-async def Get_object_descriptors_related_to_a_URL(url_id: str, relationship: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+async def Get_object_descriptors_related_to_a_URL(
+    url_or_id: str,
+    relationship: str,
+    limit: int | None = 10,
+    cursor: str | None = None
+) -> dict[str, Any] | None:
     """
     Get object descriptors related to a URL.
     """
+    if validate.is_valid_url(url_or_id):
+        url_id = vt_url_id_from_url(url_or_id)
+    else:
+        url_id = url_or_id
+
     if not validate.is_valid_url_identifier(url_id):
-        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
+        raise InvalidURLError(f"The URL ID '{url_id}' is not valid.")
 
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
-    url = f"{BASE_URL}/urls/{url_id}/relationships/{relationship}"
-    data = await requests.make_get_request_with_params(url, params, API_KEY)
+    endpoint = f"{BASE_URL}/urls/{url_id}/relationships/{relationship}"
+    data = await requests.make_get_request_with_params(endpoint, params, API_KEY)
 
-    if data["error"]:
-        logging.error(f"Error fetching VT URL relationship descriptors: {data['error']}")
-    logging.info("return: {data}")
+    err = data.get("error")
+    if err:
+        logging.error(f"Error fetching VT URL relationship descriptors: {err}")
+
+    logging.info(f"return: {data}")
     return data
+
 
 
 @mcp.tool()
-async def Get_votes_on_a_URL(url_id: str, limit: int | None = 10, cursor: str | None = None) -> dict[str, Any] | None:
+async def Get_votes_on_a_URL(
+    url_or_id: str,
+    limit: int | None = 10,
+    cursor: str | None = None
+) -> dict[str, Any] | None:
     """
     Get votes for a URL.
     """
+    if validate.is_valid_url(url_or_id):
+        url_id = vt_url_id_from_url(url_or_id)
+    else:
+        url_id = url_or_id
+
     if not validate.is_valid_url_identifier(url_id):
-        raise InvalidURLError(f"The URL ID '{url}' is not valid.")
-        
+        raise InvalidURLError(f"The URL ID '{url_id}' is not valid.")
+
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
 
-    url = f"{BASE_URL}/urls/{url_id}/votes"
-    data = await requests.make_get_request_with_params(url, params, API_KEY)
+    endpoint = f"{BASE_URL}/urls/{url_id}/votes"
+    data = await requests.make_get_request_with_params(endpoint, params, API_KEY)
 
-    if data["error"]:
-        logging.error(f"Error fetching VT URL votes: {data['error']}")
-    logging.info("return: {data}")
+    err = data.get("error")
+    if err:
+        logging.error(f"Error fetching VT URL votes: {err}")
+
+    logging.info(f"return: {data}")
     return data
+
 
 
 #comments

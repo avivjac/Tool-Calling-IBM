@@ -948,7 +948,7 @@ async def Get_URLs_by_Category(category : str, startDate : str | None = None, en
     return data
 
 @mcp.tool()
-async def Gte_URL_Report(url : str) -> dict[str, Any] | None :
+async def Get_URL_Report(url : str) -> dict[str, Any] | None :
     """
     Returns the report for a specific URL.
     """
