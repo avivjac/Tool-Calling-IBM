@@ -8,7 +8,7 @@
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n
+    "content": "<tool_response>\n"
     {
       "result": {
         "data": {
@@ -1204,14 +1204,14 @@
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
 }
 
 -----------------------------------------------------------------
 
-[
+{
   {
     "content": "Can you check the reputation of the domain google-account-verify.net? We want to know if it's malicious.",
     "role": "user"
@@ -1221,7 +1221,7 @@
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -1827,13 +1827,13 @@
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 -----------------------------------------------------------------
-[
+{
   {
     "content": "One of our employees reported a suspicious email that included a link pointing to micros0ft-login.com.
 
@@ -1847,7 +1847,7 @@ Can you pull a domain report for it?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -4442,15 +4442,15 @@ Can you check its reputation and any related security findings?",
     },
     "error": null
   }
-}\n</tool_response>\n",
-    "role": "tool"
+} "\n</tool_response>\n",
+    "role" : "tool"
   }
-]
+}
 
 -----------------------------------------------------------------
-[
+{
   {
-    "content": "I’m not very technical, but I visited a website earlier today and now I’m worried.
+    "content": "I'm not very technical, but I visited a website earlier today and now I'm worried.
 
 The domain was google.com.
 
@@ -4462,7 +4462,7 @@ Is this a safe website, or could it be malicious?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -6019,17 +6019,17 @@ Is this a safe website, or could it be malicious?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 -----------------------------------------------------------------
-[
+{
   {
     "content": "I noticed that api.github.com keeps appearing in our DNS logs over the past few days.
 
-It’s not generating a lot of traffic, but it’s consistent across different users.
+It's not generating a lot of traffic, but it's consistent across different users.
 
 Can you check whether this domain is associated with malware, phishing, or other suspicious activity?",
     "role": "user"
@@ -6039,7 +6039,7 @@ Can you check whether this domain is associated with malware, phishing, or other
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -6724,19 +6724,19 @@ Can you check whether this domain is associated with malware, phishing, or other
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 -----------------------------------------------------------------
-[
+{
   {
     "content": "One of our applications recently started making outbound requests to careers.microsoft.com.
 
-This domain isn’t documented as part of our external dependencies, and no recent code changes should have introduced it.
+This domain isn't documented as part of our external dependencies, and no recent code changes should have introduced it.
 
-Could you check the domain report and let us know if it’s considered risky or malicious?",
+Could you check the domain report and let us know if it's considered risky or malicious?",
     "role": "user"
   },
   {
@@ -6744,7 +6744,7 @@ Could you check the domain report and let us know if it’s considered risky or 
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -7490,17 +7490,18 @@ Could you check the domain report and let us know if it’s considered risky or 
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 -----------------------------------------------------------------
-[
+
+{
   {
     "content": "Hey, quick question.
 
-We’re seeing traffic to example.org and it doesn’t look legit.
+We're seeing traffic to example.org and it doesn't look legit.
 
 Any chance you can tell me if this domain is malicious?",
     "role": "user"
@@ -7510,7 +7511,7 @@ Any chance you can tell me if this domain is malicious?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -8578,9 +8579,9 @@ Any chance you can tell me if this domain is malicious?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 -----------------------------------------------------------------

@@ -1,7 +1,6 @@
 [
   {
-    "content": "Can you retrieve details for the attack tactic TA0001?
-I want to understand what this tactic represents and how attackers typically use it.",
+    "content": "Can you retrieve details for the attack tactic TA0001? I want to understand what this tactic represents and how attackers typically use it.",
     "role": "user"
   },
   {
@@ -9,7 +8,7 @@ I want to understand what this tactic represents and how attackers typically use
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -30,14 +29,14 @@ I want to understand what this tactic represents and how attackers typically use
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
 ]
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "While investigating a recent security incident, several indicators were mapped to the ATT&CK tactic TA0002.
 
@@ -49,7 +48,7 @@ Can you pull the attack tactic object and explain what kind of attacker behavior
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -70,16 +69,16 @@ Can you pull the attack tactic object and explain what kind of attacker behavior
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "We’re currently performing an incident response analysis and trying to better understand the attacker’s objectives at different stages of the attack.
+    "content": "We're currently performing an incident response analysis and trying to better understand the attacker's objectives at different stages of the attack.
 
 One of the stages was classified under the ATT&CK tactic TA0003.
 
@@ -91,7 +90,7 @@ Could you retrieve the full attack tactic object and summarize its purpose, typi
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -112,14 +111,14 @@ Could you retrieve the full attack tactic object and summarize its purpose, typi
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "What does the ATT&CK tactic TA0004 represent?",
     "role": "user"
@@ -129,7 +128,7 @@ Could you retrieve the full attack tactic object and summarize its purpose, typi
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n "{
   "result": {
     "data": {
       "data": {
@@ -150,16 +149,16 @@ Could you retrieve the full attack tactic object and summarize its purpose, typi
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "I’m mapping observed attacker behavior to the MITRE ATT&CK framework, and one of the relevant tactics is TA0005.
+    "content": "I'm mapping observed attacker behavior to the MITRE ATT&CK framework, and one of the relevant tactics is TA0005.
 
 Can you get the attack tactic object and provide more context about it?",
     "role": "user"
@@ -169,7 +168,7 @@ Can you get the attack tactic object and provide more context about it?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n "{
   "result": {
     "data": {
       "data": {
@@ -190,16 +189,16 @@ Can you get the attack tactic object and provide more context about it?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "During threat modeling, we identified that the attacker’s actions align with TA0006, especially in the later stages of the intrusion.
+    "content": "During threat modeling, we identified that the attacker's actions align with TA0006, especially in the later stages of the intrusion.
 
 Can you retrieve details about this attack tactic?",
     "role": "user"
@@ -209,7 +208,7 @@ Can you retrieve details about this attack tactic?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -230,14 +229,14 @@ Can you retrieve details about this attack tactic?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "I’m preparing training material for our blue team and want to include a clear explanation of the ATT&CK tactic TA0007.
 
@@ -249,7 +248,7 @@ Can you fetch the attack tactic object and summarize it in simple terms?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -270,14 +269,14 @@ Can you fetch the attack tactic object and summarize it in simple terms?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "I came across the ATT&CK tactic TA0008 while reviewing a threat report.
 
@@ -289,7 +288,7 @@ Can you explain what this tactic is about and what kind of attacker goals it rep
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -310,18 +309,18 @@ Can you explain what this tactic is about and what kind of attacker goals it rep
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "We’re designing new detection rules and want to align them with MITRE ATT&CK.
+    "content": "We're designing new detection rules and want to align them with MITRE ATT&CK.
 
-One of the tactics we’re focusing on is TA0009, since it appears frequently in recent threat intelligence reports.
+One of the tactics we're focusing on is TA0009, since it appears frequently in recent threat intelligence reports.
 
 Could you retrieve the attack tactic object and describe its scope and common techniques?
 
@@ -333,7 +332,7 @@ Could you retrieve the attack tactic object and describe its scope and common te
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -354,18 +353,18 @@ Could you retrieve the attack tactic object and describe its scope and common te
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "Hey, quick question —
 
-What’s the ATT&CK tactic TA0011?
+What's the ATT&CK tactic TA0011?
 I want to know what attackers are trying to achieve at this stage.",
     "role": "user"
   },
@@ -374,7 +373,7 @@ I want to know what attackers are trying to achieve at this stage.",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n" {
   "result": {
     "data": {
       "data": {
@@ -395,9 +394,9 @@ I want to know what attackers are trying to achieve at this stage.",
     },
     "error": null
   }
-}\n</tool_response>\n",
+} "\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------

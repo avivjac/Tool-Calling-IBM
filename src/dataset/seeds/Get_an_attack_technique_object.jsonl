@@ -1,4 +1,4 @@
-[
+{
   {
     "content": "Can you retrieve details for the ATT&CK technique T1059?
 I want to understand how this technique is typically used by attackers.",
@@ -9,7 +9,7 @@ I want to understand how this technique is typically used by attackers.",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -53,16 +53,16 @@ I want to understand how this technique is typically used by attackers.",
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "While investigating a recent security incident, we mapped some of the attacker’s behavior to the ATT&CK technique T1071.
+    "content": "While investigating a recent security incident, we mapped some of the attacker's behavior to the ATT&CK technique T1071.
 
 Can you pull the attack technique object and explain what it involves?",
     "role": "user"
@@ -72,7 +72,7 @@ Can you pull the attack technique object and explain what it involves?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -115,16 +115,16 @@ Can you pull the attack technique object and explain what it involves?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "We’re currently analyzing an intrusion and trying to break down the attacker’s actions step by step.
+    "content": "We're currently analyzing an intrusion and trying to break down the attacker's actions step by step.
 
 One of the observed behaviors was classified under the ATT&CK technique T1027.
 
@@ -138,7 +138,7 @@ Could you retrieve the full attack technique object and summarize how attackers 
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -182,14 +182,14 @@ Could you retrieve the full attack technique object and summarize how attackers 
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "What is the ATT&CK technique T1566?",
     "role": "user"
@@ -199,7 +199,7 @@ Could you retrieve the full attack technique object and summarize how attackers 
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -247,16 +247,16 @@ Could you retrieve the full attack technique object and summarize how attackers 
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "I’m mapping indicators from a threat intelligence report to the MITRE ATT&CK framework.
+    "content": "I'm mapping indicators from a threat intelligence report to the MITRE ATT&CK framework.
 
 The report references technique T1082.
 
@@ -268,7 +268,7 @@ Can you retrieve the attack technique object and provide more context about it?"
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -314,14 +314,14 @@ Can you retrieve the attack technique object and provide more context about it?"
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "During our analysis, we noticed activity consistent with T1003, particularly during the execution phase of the attack.
 
@@ -333,7 +333,7 @@ Can you fetch details about this attack technique?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -377,16 +377,16 @@ Can you fetch details about this attack technique?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "I’m preparing training material for our blue team and want to include a clear explanation of the ATT&CK technique T1055.
+    "content": "I'm preparing training material for our blue team and want to include a clear explanation of the ATT&CK technique T1055.
 
 Can you retrieve the attack technique object and explain it in simple terms?",
     "role": "user"
@@ -396,7 +396,7 @@ Can you retrieve the attack technique object and explain it in simple terms?",
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -439,14 +439,14 @@ Can you retrieve the attack technique object and explain it in simple terms?",
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "I came across the ATT&CK technique T1105 while reviewing a recent threat report.
 
@@ -458,7 +458,7 @@ Can you explain what this technique is and how it is typically abused by attacke
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -510,18 +510,18 @@ Can you explain what this technique is and how it is typically abused by attacke
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
-    "content": "We’re designing new detection rules and want to align them with MITRE ATT&CK techniques.
+    "content": "We're designing new detection rules and want to align them with MITRE ATT&CK techniques.
 
-One of the techniques we’re focusing on is T1046, since it appears frequently in recent malware campaigns.
+One of the techniques we're focusing on is T1046, since it appears frequently in recent malware campaigns.
 
 Could you retrieve the attack technique object and describe its behavior and common use cases?",
     "role": "user"
@@ -531,7 +531,7 @@ Could you retrieve the attack technique object and describe its behavior and com
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -576,14 +576,14 @@ Could you retrieve the attack technique object and describe its behavior and com
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
 
-[
+{
   {
     "content": "Hey, quick question —
 
@@ -595,7 +595,7 @@ What does the ATT&CK technique T1053 mean, and how do attackers usually use it?"
     "role": "assistant"
   },
   {
-    "content": "<tool_response>\n{
+    "content": "<tool_response>\n"{
   "result": {
     "data": {
       "data": {
@@ -646,9 +646,9 @@ What does the ATT&CK technique T1053 mean, and how do attackers usually use it?"
     },
     "error": null
   }
-}\n</tool_response>\n",
+}"\n</tool_response>\n",
     "role": "tool"
   }
-]
+}
 
 ------------------------------------------------------------------
