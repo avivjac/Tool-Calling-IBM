@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_backend
+    ports:
+      - "11434:11434"  # חשיפת הפורט למחשב המארח
+    volumes:
+      - ./ollama_data:/root/.ollama # שמירת המודלים בתיקייה מקומית ליד הדוקר
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    restart: always
+    # אם יש לך כרטיס מסך של NVIDIA ואתה רוצה ביצועים,
+    # תצטרך להסיר את ההערות מהחלק הבא (דורש NVIDIA Container Toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
