@@ -2,11 +2,14 @@
 
 A comprehensive cybersecurity threat intelligence aggregation framework that provides unified access to multiple security APIs and databases through the Model Context Protocol (MCP). This project enables seamless integration and tool-calling capabilities for various threat intelligence providers and vulnerability databases.
 
-## 🔍 Overview
+## All the available endpoints can be found at the mapping google sheet:
+[https://docs.google.com/spreadsheets/d/17HiwjDoa-tblKsQIgQnr4ImooQOPicflwLq5PvVqI0A/edit?usp=sharing](https://docs.google.com/spreadsheets/d/17HiwjDoa-tblKsQIgQnr4ImooQOPicflwLq5PvVqI0A/edit?usp=sharing)
 
-Tool-Calling-IBM is a Python-based framework that consolidates multiple threat intelligence APIs and security databases into a single, unified interface.  It supports querying IP addresses, domains, URLs, file hashes, CVEs, and other security indicators across multiple platforms including VirusTotal, IBM X-Force, URLscan. io, AlienVault OTX, NIST NVD, and AbuseIPDB.
+## Overview
 
-## ✨ Features
+Tool-Calling-IBM is a Python-based framework that consolidates multiple threat intelligence APIs and security databases into a single, unified interface.  It supports querying IP addresses, domains, URLs, file hashes, CVEs, and other security indicators across multiple platforms including VirusTotal, IBM X-Force, URLscan.io, AlienVault OTX, NIST NVD, and AbuseIPDB.
+
+## Features
 
 - **Multi-Provider Support**: Integrate with leading threat intelligence platforms
   
@@ -14,50 +17,137 @@ Tool-Calling-IBM is a Python-based framework that consolidates multiple threat i
   - VirusTotal
   - IBM X-Force Exchange
   - URLscan.io
-  - AlienVault OTX
   
   **Database Tools:**
   - NIST NVD (National Vulnerability Database) - CVE lookup
   - AbuseIPDB - IP reputation and abuse reporting
 
 - **MCP Integration**: Built on the Model Context Protocol for standardized tool-calling
+- **LLM Service**: Integrated Ollama-based service for generating intelligent responses from tool outputs
+- **Training Dataset**: Pre-built conversation seeds and tool definitions for fine-tuning and testing
 - **Comprehensive Validation**: Built-in validators for IPs, domains, URLs, emails, hashes, CVEs, and CPEs
-- **Asynchronous Operations**:  Efficient async/await pattern for improved performance
+- **Asynchronous Operations**: Efficient async/await pattern for improved performance
 - **Detailed Logging**: Complete logging system for debugging and monitoring
 - **Type Safety**: Full type hints for better code quality and IDE support
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 Tool-Calling-IBM/
 ├── src/
-│   ├── dataset/          # Dataset storage and management
+│   ├── dataset/
+│   │   ├── LLM-service/              # LLM response generation service
+│   │   │   ├── main.py               # Ollama integration for processing tool responses
+│   │   │   └── docker-compose.yml    # Docker setup for Ollama backend
+│   │   ├── seeds/                    # Training data & conversation examples
+│   │   │   ├── Get_an_IP_address_report.txt
+│   │   │   ├── Get_a_URL_report.txt
+│   │   │   ├── Get_a_domain_report.jsonl
+│   │   │   ├── Get_an_attack_tactic_object.txt
+│   │   │   └── Get_an_attack_technique_object.txt
+│   │   ├── mcp_tools/
+│   │   │   └── tool_list.jsonl       # MCP tool definitions
+│   │   └── tool_train_set/           # Generated training data output
 │   ├── server/
 │   │   └── providers/
 │   │       ├── API_tools/
 │   │       │   ├── virusTotal.py     # VirusTotal API integration
-│   │       │   ├── Xforce.py         # IBM X-Force API integration
+│   │       │   ├── Xforce. py         # IBM X-Force API integration
 │   │       │   ├── URLscan.py        # URLscan.io API integration
 │   │       │   ├── AlienVaultOTX.py  # AlienVault OTX API integration
 │   │       │   └── tool_base.py      # Base provider class
 │   │       └── DB_tools/
 │   │           ├── NIST. py           # NIST NVD CVE database
 │   │           └── AbuseIPDB.py      # AbuseIPDB integration
-│   ├── tests/            # Test suites
+│   ├── tests/                        # Test suites
 │   └── utils/
-│       ├── validate.py              # Input validation utilities
-│       ├── requests.py              # HTTP request helpers
-│       ├── convert_txt_to_jsonl.py  # Data conversion utilities
-│       └── list_tools_script.py     # Tool discovery script
+│       ├── validate. py               # Input validation utilities
+│       ├── requests. py               # HTTP request helpers
+│       ├── convert_txt_to_jsonl.py   # Data conversion utilities
+│       └── list_tools_script.py      # Tool discovery script
 ├── main.py
 └── README.md
 ```
 
-## 🚀 Getting Started
+## Dataset Structure
+
+The `src/dataset/` directory contains training data and tool definitions for LLM fine-tuning and testing:
+
+### LLM Service (`src/dataset/LLM-service/`)
+
+An integrated service that processes tool responses using Ollama to generate human-readable answers. 
+
+- **`main.py`** - Python service that: 
+  - Takes user requests, tool calls, and tool responses
+  - Formats them using a predefined prompt template
+  - Sends to Ollama (llama3.1:8b model)
+  - Returns structured JSON responses
+
+- **`docker-compose.yml`** - Docker configuration for running Ollama backend
+  - Exposes port 11434 for API access
+  - Persistent model storage
+  - Optional GPU acceleration support
+
+### Seeds Directory (`src/dataset/seeds/`)
+Contains conversation examples demonstrating tool usage patterns:  
+
+Each JSONL file contains multiple seeds, where each seed is composed of a sequence of messages with predefined roles: 
+
+```json
+{
+  {
+    "content": ".. .",
+    "role": "user"
+  },
+  {
+    "content": "...",
+    "role": "assistant"
+  },
+  {
+    "content": "...",
+    "role": "tool"
+  }
+}
+```
+
+#### Purpose
+
+The seeds are used to build the training dataset for fine-tuning a language model to perform tool-calling. 
+
+For each seed: 
+
+- A user prompt is defined. 
+- The corresponding tool call is executed and recorded.
+- The response returned by the tool is appended to the seed. 
+- The collected data is sent to the LLM service, which generates the final model response according to a predefined template.
+
+#### Output Location
+
+The generated training data is stored at: 
+
+```
+src/dataset/tool_train_set
+```
+
+### MCP Tools Directory (`src/dataset/mcp_tools/`)
+
+- **`tool_list.jsonl`** - Structured tool definitions in MCP format
+  - Function schemas for all available tools
+  - Parameter specifications and requirements
+  - Ready for LLM integration and fine-tuning
+
+These datasets can be used for: 
+- Training AI agents to use threat intelligence tools
+- Testing tool-calling capabilities
+- Creating conversation examples for security analysts
+- Fine-tuning models for cybersecurity workflows
+
+## Getting Started
 
 ### Prerequisites
 
 - Python 3.8 or higher
+- Docker and Docker Compose (for LLM service)
 - API keys for the services you want to use
 
 ### Installation
@@ -73,7 +163,7 @@ cd Tool-Calling-IBM
 pip install -r requirements.txt
 ```
 
-3. Create a `.env` file in the root directory with your API keys:
+3. Create a `.env` file in the root directory with your API keys:  
 ```env
 # API-based tools
 VIRUSTOTAL_API_KEY=your_virustotal_api_key
@@ -87,6 +177,14 @@ NIST_API_KEY=your_nist_api_key
 ABUSELPDB_API_KEY=your_abuseipdb_api_key
 ```
 
+4. (Optional) Set up the LLM service:
+```bash
+cd src/dataset/LLM-service
+docker-compose up -d
+```
+
+This will start the Ollama backend on `http://127.0.0.1:11434`
+
 ### Required Dependencies
 
 ```
@@ -96,132 +194,57 @@ python-dotenv
 requests
 ```
 
-## 📖 Usage
+## Usage
 
-### API-Based Tools
+### Running MCP Servers
 
-#### VirusTotal API Tools
+This framework uses the Model Context Protocol (MCP) architecture.  To use the tools, you need to run an MCP server for the provider you want to use.
 
-```python
-# Get IP address report
-result = await Get_an_IP_address_report("8.8.8.8")
+#### Starting an MCP Server
 
-# Request IP address rescan
-result = await Request_an_IP_address_rescan("8.8.8.8")
-
-# Get comments on an IP address
-comments = await Get_comments_on_an_IP_address("8.8.8.8", limit=10)
+1. Navigate to the provider directory:
+```bash
+cd src/server/providers/API_tools
+# or
+cd src/server/providers/DB_tools
 ```
 
-#### IBM X-Force Tools
+2. Run the MCP server for your chosen provider:
+```bash
+# Example:  VirusTotal
+mcp dev virusTotal.py
 
-```python
-# Get collection by ID
-collection = await Get_Collection_by_ID("collection_id")
+# Example: X-Force
+mcp dev Xforce. py
 
-# Get latest public collections
-collections = await Get_latest_public_Collections()
-
-# Get STIX markup
-stix_data = await Get_Collection_as_STIX_Markup("collection_id")
+# Example:  NIST
+cd ../DB_tools
+mcp dev NIST.py
 ```
 
-#### URLscan. io Tools
+The MCP server will start and expose the available tools through the MCP protocol.
 
-```python
-# Submit URL for scanning
-scan_result = await Scan(
-    url="https://example.com",
-    visibility="public",
-    tags=["phishing", "suspicious"]
-)
+#### Connecting to the MCP Server
 
-# Get scan results
-result = await Result(scanid="scan_id")
+Once the server is running, you can connect to it using an MCP client and call the available functions.  The server exposes all the tools defined in that provider. 
 
-# Check API quotas
-quotas = await API_Quotas()
-```
+Example workflow: 
+1. Start the MCP server (e.g., `python virusTotal.py`)
+2. The server registers all available tools (e.g., `Get_an_IP_address_report`, `Get_a_URL_report`)
+3. Connect your MCP client to the server
+4. Call the tools with appropriate parameters
 
-### Database Tools
-
-#### NIST NVD (CVE Database)
-
-```python
-# Search for CVE by ID
-cve_info = await CVE(cveID="CVE-2021-44228")
-
-# Search CVEs by keyword
-cves = await CVE(keywordSearch="log4j", resultsPerPage=20)
-
-# Search by CVSS severity
-critical_cves = await CVE(
-    cvssV3Severity="CRITICAL",
-    pubStartDate="2023-01-01",
-    pubEndDate="2023-12-31"
-)
-
-# Search by CPE (Common Platform Enumeration)
-cves = await CVE(cpeName="cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*")
-
-# Filter CVEs with KEV (Known Exploited Vulnerabilities)
-kev_cves = await CVE(hasKev=True)
-```
-
-#### AbuseIPDB
-
-```python
-# Check IP reputation
-ip_report = await Check_IP("192.168.1.1")
-
-# Report abusive IP
-report_result = await Report_IP(
-    ip="malicious.ip. address",
-    categories=[18, 22],  # SSH brute-force, Web spam
-    comment="Multiple failed login attempts"
-)
-
-# Get IP blacklist
-blacklist = await Get_Blacklist(confidenceMinimum=90)
-```
-
-### Validation Utilities
-
-```python
-from src.utils import validate
-
-# Validate IP address
-is_valid = validate.is_valid_ip("192.168.1.1")
-
-# Validate domain
-is_valid = validate.is_valid_domain("example.com")
-
-# Validate URL
-is_valid = validate.is_valid_url("https://example.com")
-
-# Validate email
-is_valid = validate.is_valid_email("user@example.com")
-
-# Validate hash (MD5, SHA1, SHA256)
-is_valid = validate. is_valid_hash("5d41402abc4b2a76b9719d911017c592")
-
-# Validate CVE ID
-is_valid = validate.is_valid_cve("CVE-2021-44228")
-
-# Validate CPE
-is_valid = validate.is_valid_cpe("cpe:2.3:a:vendor:product:version")
-```
-
-## 🔧 Available Tools
+## Example For Available Tools
 
 ### API-Based Tools
 
 #### VirusTotal
 - IP address reports and rescans
+- URL and domain reputation checks
 - Comments retrieval
 - Related objects queries
 - File analysis
-- Domain and URL scanning
+- MITRE ATT&CK tactic and technique lookups
 
 #### IBM X-Force
 - Collection management
@@ -250,16 +273,9 @@ is_valid = validate.is_valid_cpe("cpe:2.3:a:vendor:product:version")
 - CERT alerts and notes filtering
 - OVAL (Open Vulnerability Assessment Language) data
 
-#### AbuseIPDB
-- IP reputation checking
-- Abuse reporting
-- Blacklist access
-- Confidence scoring
-- Historical abuse data
+## Validation Features
 
-## 🛡️ Validation Features
-
-The framework includes comprehensive validation for:
+The framework includes comprehensive validation for: 
 - IPv4 and IPv6 addresses
 - Domain names (RFC compliant)
 - URLs (HTTP/HTTPS)
@@ -268,9 +284,9 @@ The framework includes comprehensive validation for:
 - CVE identifiers
 - CPE (Common Platform Enumeration) strings
 
-## 📝 Logging
+## Logging
 
-All API interactions and validations are logged for auditing and debugging: 
+All API interactions and validations are logged for auditing and debugging:  
 - `VitusTotal. log` - VirusTotal API calls
 - `Xforce_log.log` - X-Force API calls
 - `URLscan_log.log` - URLscan API calls
@@ -279,7 +295,7 @@ All API interactions and validations are logged for auditing and debugging:
 - `validate. log` - Validation operations
 - `requests_log.log` - HTTP request logs
 
-## 🎯 Use Cases
+## Use Cases
 
 - **Threat Intelligence Gathering**: Aggregate threat data from multiple sources
 - **Security Incident Response**: Quick lookup of IOCs (Indicators of Compromise)
@@ -287,10 +303,12 @@ All API interactions and validations are logged for auditing and debugging:
 - **IP Reputation Analysis**: Check if IPs are associated with malicious activity
 - **Automated Security Workflows**: Integrate with SOAR platforms
 - **Research and Analysis**: Security research and threat hunting operations
+- **AI/LLM Training**: Fine-tune models for cybersecurity tool-calling capabilities
+- **Security Analyst Training**: Use conversation seeds as training examples
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. 
+Contributions are welcome! Please feel free to submit a Pull Request.  
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -298,11 +316,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [VirusTotal](https://www.virustotal.com/) for threat intelligence API
 - [IBM X-Force Exchange](https://exchange.xforce.ibmcloud.com/) for threat data
@@ -310,14 +328,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [AlienVault OTX](https://otx.alienvault.com/) for open threat intelligence
 - [NIST NVD](https://nvd.nist.gov/) for vulnerability data
 - [AbuseIPDB](https://www.abuseipdb.com/) for IP reputation data
+- [MITRE ATT&CK](https://attack.mitre.org/) for adversary tactics and techniques framework
 - [MCP (Model Context Protocol)](https://github.com/anthropics/mcp) for the framework
+- [Ollama](https://ollama.ai/) for local LLM inference
 
-## 📧 Contact
+## Contact
 
-Aviv Jac - [@avivjac](https://github.com/avivjac)
+Aviv Jacubovski - [@avivjac](https://github.com/avivjac)  
+  avivj2012@gmail.com
+
+Stav Ozeri - [@StavOzeri](https://github.com/StavOzeri)  
+  stavozeri@gmail.com
 
 Project Link: [https://github.com/avivjac/Tool-Calling-IBM](https://github.com/avivjac/Tool-Calling-IBM)
 
 ---
 
-**Note**:  Make sure to keep your API keys secure and never commit them to version control. Always use environment variables or secure secret management systems. 
+**Note**: Make sure to keep your API keys secure and never commit them to version control. Always use environment variables or secure secret management systems.  
