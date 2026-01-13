@@ -1,0 +1,6 @@
+requests
+httpx
+python-dotenv
+fastmcp
+pytest
+pytest-asyncio
